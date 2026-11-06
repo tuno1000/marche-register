@@ -12,6 +12,8 @@ interface Props {
   cancelLabel?: string;
   /** 削除など、元に戻せない操作のとき */
   danger?: boolean;
+  /** true の間は［確定］を押せない（「削除」と入力させるときなど） */
+  confirmDisabled?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
   /**
@@ -29,6 +31,7 @@ export function ConfirmDialog({
   confirmLabel,
   cancelLabel = 'キャンセル',
   danger,
+  confirmDisabled,
   onConfirm,
   onCancel,
   guardBack = true,
@@ -62,6 +65,7 @@ export function ConfirmDialog({
             type="button"
             className={`${ui.button} ${danger ? ui.dangerFilled : ui.primary}`}
             onClick={onConfirm}
+            disabled={confirmDisabled}
           >
             {confirmLabel}
           </button>

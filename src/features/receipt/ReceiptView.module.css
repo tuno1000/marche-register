@@ -90,3 +90,30 @@
   transform: translate(-50%, -50%) rotate(-15deg);
   pointer-events: none;
 }
+
+.links {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.linkText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.url {
+  color: var(--color-text-muted);
+  font-size: var(--font-sm);
+  overflow-wrap: anywhere;
+}

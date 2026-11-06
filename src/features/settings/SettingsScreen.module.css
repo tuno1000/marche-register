@@ -4,9 +4,50 @@
   justify-content: space-between;
   gap: var(--space-3);
   min-height: var(--tap-min);
-  margin: 0;
+  margin: var(--space-2) 0;
 }
 
 .control {
   width: 180px;
+}
+
+.linkRow {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.linkLabel {
+  flex: 0 0 38%;
+}
+
+.ok {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.warning {
+  margin: var(--space-2) 0 var(--space-3);
+  color: var(--color-danger);
+  font-size: var(--font-sm);
+}
+
+.summary {
+  margin: 0 0 var(--space-2);
+}
+
+.summary div {
+  display: flex;
+  justify-content: space-between;
+}
+
+.summary dd {
+  margin: 0;
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.danger {
+  margin: 0;
+  color: var(--color-danger);
+  font-weight: 700;
 }

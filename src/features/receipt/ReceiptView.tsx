@@ -1,3 +1,4 @@
+import { QrCode } from '../../components/QrCode';
 import type { Transaction } from '../../domain/types';
 import { discountLabel, formatDateTime, formatYen } from '../../lib/format';
 import styles from './ReceiptView.module.css';
@@ -5,7 +6,7 @@ import styles from './ReceiptView.module.css';
 /**
  * レシートの中身（02-画面設計 S-02、要件定義 F-06）
  * 店名などは、会計したときに取引へ保存した内容を使う（03-データ設計 DD-2）。
- * 空欄の項目は表示しない。QR コードは M5 で作る。
+ * 空欄の項目は表示しない。SNS・URL は QR コードを付ける。
  */
 export function ReceiptView({ tx }: { tx: Transaction }) {
   const { receipt } = tx;
@@ -79,8 +80,23 @@ export function ReceiptView({ tx }: { tx: Transaction }) {
       </div>
       {hasReduced && <p className={styles.note}>※は軽減税率対象</p>}
 
-      {(receipt.contact || receipt.footer) && <hr className={styles.rule} />}
+      {(receipt.contact || receipt.footer || receipt.links.length > 0) && (
+        <hr className={styles.rule} />
+      )}
       {receipt.contact && <p className={styles.contact}>{receipt.contact}</p>}
+      {receipt.links.length > 0 && (
+        <ul className={styles.links}>
+          {receipt.links.map((link, i) => (
+            <li key={i} className={styles.link}>
+              <QrCode text={link.url} label={`${link.label || link.url}の QR コード`} size={96} />
+              <span className={styles.linkText}>
+                {link.label && <strong>{link.label}</strong>}
+                <span className={styles.url}>{link.url}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
       {receipt.footer && <p className={styles.footer}>{receipt.footer}</p>}
     </article>
   );
