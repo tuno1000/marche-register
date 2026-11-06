@@ -1,8 +1,10 @@
 # 技術設計書：マルシェ用スマホレジ PWA
 
-- 版：1.0
+- 版：1.1
 - 作成日：2026-11-06
 - 状態：**確定**（2026-11-06）
+- 変更履歴
+  - 1.1 M1 の実装に合わせて、型定義の置き場所を `db/types.ts` から `domain/types.ts` に変更（domain が db に依存しないようにするため）。`domain/errors.ts` を追加
 - 前提：[01-要件定義](./01-requirements.md) v1.3、[02-画面設計](./02-screen-design.md) v1.2、[03-データ設計](./03-data-design.md) v1.0
 
 ---
@@ -50,6 +52,9 @@
 │  ├─ main.tsx             起動処理（beforeinstallprompt の受け取りもここ）
 │  ├─ app/                 App、ルーティング、エラー時の画面、共通の枠（ヘッダー・タブバー）
 │  ├─ domain/              計算と変換（React も Dexie も使わない純粋な関数）
+│  │   ├─ types.ts         型定義（03 の 3 章）。db からも使う
+│  │   ├─ errors.ts        画面に伝える決まったエラー（在庫不足など）
+│  │   ├─ integer.ts       整数の割り算と按分
 │  │   ├─ discount.ts      % 値引きの 3 方式（03 の 4.1）
 │  │   ├─ checkout.ts      1 取引の計算（03 の 4.2）
 │  │   ├─ summary.ts       集計（03 の 4.4）
@@ -58,7 +63,7 @@
 │  │   └─ backup.ts        バックアップの形式と検査、古い形式からの変換（03 の 7 章）
 │  ├─ db/                  Dexie の定義と、データの読み書き
 │  │   ├─ schema.ts        ストア定義とバージョン（03 の 2 章）
-│  │   ├─ types.ts         型定義（03 の 3 章）
+│  │   ├─ kv.ts            設定・現在のイベントなど 1 件ずつの値
 │  │   └─ repositories/    products.ts、events.ts、transactions.ts、settings.ts、backup.ts など
 │  ├─ features/            画面ごと
 │  │   ├─ checkout/        S-01、S-01a、S-01b、S-01c
