@@ -1,0 +1,277 @@
+.eventLink {
+  color: inherit;
+  text-decoration: none;
+}
+
+.main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* カテゴリのタブ（横スクロール） */
+.tabs {
+  display: flex;
+  flex-shrink: 0;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  overflow-x: auto;
+  border-bottom: 1px solid var(--color-border);
+  scrollbar-width: none;
+}
+
+.tab {
+  flex-shrink: 0;
+  min-height: var(--tap-min);
+  padding: 0 var(--space-4);
+  border: 2px solid var(--tab-color);
+  border-radius: 999px;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.tab[aria-selected='true'] {
+  background: var(--tab-color);
+  color: #ffffff;
+}
+
+/* 商品エリア：画面の約 55%（02-画面設計 S-01） */
+.products {
+  flex: 55 1 0;
+  min-height: 0;
+  padding: var(--space-2) var(--space-3);
+  overflow-y: auto;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+}
+
+.productButton {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+  min-width: 0;
+  min-height: var(--tap-checkout);
+  padding: var(--space-1) var(--space-1) var(--space-2);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  color: var(--color-text);
+  text-align: center;
+  /* 長押しで画像の保存メニューや文字の選択を出さない（02-画面設計 D-5） */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.productButton:active:not(:disabled) {
+  background: var(--color-surface-strong);
+}
+
+.productButton:disabled {
+  opacity: 0.4;
+  filter: grayscale(1);
+}
+
+.productImage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border-radius: calc(var(--radius) - 4px);
+  color: #ffffff;
+  font-size: var(--font-xl);
+  font-weight: 700;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.productName {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: var(--font-sm);
+  font-weight: 700;
+  line-height: 1.3;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.productPrice {
+  font-weight: 700;
+}
+
+.remaining {
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.soldOut {
+  color: var(--color-danger);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* タップしたときに一瞬光らせる */
+.flash {
+  position: absolute;
+  inset: 0;
+  background: var(--color-highlight);
+  animation: flash 0.5s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes flash {
+  from {
+    opacity: 0.9;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* カート欄：画面の約 45% */
+.cart {
+  display: flex;
+  flex: 45 1 0;
+  flex-direction: column;
+  min-height: 0;
+  border-top: 2px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.clearButton {
+  min-height: var(--tap-min);
+  padding: 0 var(--space-2);
+  border: none;
+  background: none;
+  color: var(--color-danger);
+  font-size: var(--font-sm);
+  font-weight: 700;
+}
+
+.lines {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: var(--space-1) var(--space-3) 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.cartEmpty {
+  padding: var(--space-4) 0;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.line {
+  position: relative;
+  padding: var(--space-1) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.lineMain {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.lineName {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--tap-min);
+  padding: 0;
+  overflow: hidden;
+  border: none;
+  background: none;
+  font-weight: 700;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qty {
+  display: flex;
+  align-items: center;
+}
+
+.qtyButton {
+  width: var(--tap-min);
+  height: var(--tap-min);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  font-weight: 700;
+}
+
+.qtyValue {
+  min-width: 2em;
+  font-weight: 700;
+  text-align: center;
+}
+
+.amount {
+  min-width: 4.5em;
+  font-weight: 700;
+  text-align: right;
+}
+
+.discountRow {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  padding-left: var(--space-3);
+  color: var(--color-danger);
+  font-size: var(--font-sm);
+}
+
+.summary {
+  flex-shrink: 0;
+  padding: var(--space-2) var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+.summary .discountRow {
+  padding-left: 0;
+}
+
+.totalRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.total {
+  font-size: var(--font-xl);
+  line-height: 1.2;
+}
+
+.qtyCount {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}

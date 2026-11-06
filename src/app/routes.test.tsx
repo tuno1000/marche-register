@@ -14,7 +14,8 @@ function renderAt(path: string) {
 describe('画面の切り替え', () => {
   it('起動時は会計画面で、下のタブが 4 つある', () => {
     renderAt('/');
-    expect(screen.getByRole('heading', { name: '会計' })).toBeInTheDocument();
+    // 会計画面のヘッダーには、現在のイベント（まだ選んでいない）を表示する
+    expect(screen.getByRole('heading', { name: /イベント未選択/ })).toBeInTheDocument();
     const nav = screen.getByRole('navigation', { name: 'メイン' });
     expect(nav.querySelectorAll('a')).toHaveLength(4);
   });

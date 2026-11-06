@@ -1,0 +1,65 @@
+.body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-height: 0;
+  padding: var(--space-3) var(--space-4);
+  overflow-y: auto;
+}
+
+.amounts {
+  margin: 0;
+}
+
+.amountRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.amountRow dt {
+  color: var(--color-text-muted);
+  font-weight: 700;
+}
+
+.amountRow dd {
+  margin: 0;
+  font-weight: 700;
+}
+
+.total,
+.tendered {
+  font-size: var(--font-xl);
+}
+
+/* お釣りを最も大きく */
+.change {
+  font-size: var(--font-xxl);
+}
+
+.short {
+  color: var(--color-danger);
+  font-size: var(--font-xl);
+}
+
+.quick,
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+}
+
+.key {
+  min-height: 52px;
+  padding: 0;
+  font-size: var(--font-lg);
+}
+
+.quick .key {
+  font-size: var(--font-md);
+}
+
+.clear {
+  color: var(--color-danger);
+}

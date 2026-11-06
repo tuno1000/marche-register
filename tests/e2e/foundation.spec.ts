@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 test('起動すると会計画面と下のタブが表示される', async ({ page }) => {
   await page.goto('./');
-  await expect(page.getByRole('heading', { name: '会計' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /イベント未選択/ })).toBeVisible();
   const nav = page.getByRole('navigation', { name: 'メイン' });
   for (const label of ['会計', '履歴', '集計', 'その他']) {
     await expect(nav.getByRole('link', { name: label })).toBeVisible();
@@ -47,7 +47,7 @@ test('一度開いたあとは、通信を切っても起動できる（E-6）',
 
   await context.setOffline(true);
   await page.reload();
-  await expect(page.getByRole('heading', { name: '会計' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /イベント未選択/ })).toBeVisible();
   await page.getByRole('link', { name: '集計' }).click();
   await expect(page.getByRole('heading', { name: '集計' })).toBeVisible();
 });

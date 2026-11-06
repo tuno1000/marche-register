@@ -3,14 +3,13 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { BottomSheet } from '../../components/BottomSheet';
 import { Header } from '../../components/Header';
-import { showToast } from '../../components/Toast';
 import ui from '../../components/ui.module.css';
-import { getCurrentEventId, setCurrentEventId } from '../../db/kv';
+import { getCurrentEventId } from '../../db/kv';
 import { listEvents } from '../../db/repositories/events';
 import type { MarketEvent } from '../../domain/types';
-import { errorMessage } from '../../lib/errorMessage';
 import { formatEventDate } from '../../lib/format';
 import styles from './EventsScreen.module.css';
+import { useSwitchEvent } from './useSwitchEvent';
 
 /** S-06 イベント一覧 */
 export function EventsScreen() {
@@ -21,14 +20,11 @@ export function EventsScreen() {
   }));
   const [selected, setSelected] = useState<MarketEvent | null>(null);
 
-  const makeCurrent = async (event: MarketEvent) => {
+  const { switchTo, dialog } = useSwitchEvent();
+
+  const makeCurrent = (event: MarketEvent) => {
     setSelected(null);
-    try {
-      await setCurrentEventId(event.id);
-      showToast(`「${event.name}」を現在のイベントにしました`);
-    } catch (e) {
-      showToast(errorMessage(e));
-    }
+    switchTo(event);
   };
 
   return (
@@ -76,7 +72,7 @@ export function EventsScreen() {
               <button
                 type="button"
                 className={`${ui.button} ${ui.primary} ${ui.large}`}
-                onClick={() => void makeCurrent(selected)}
+                onClick={() => makeCurrent(selected)}
               >
                 現在のイベントにする
               </button>
@@ -94,6 +90,7 @@ export function EventsScreen() {
           </div>
         )}
       </BottomSheet>
+      {dialog}
     </>
   );
 }

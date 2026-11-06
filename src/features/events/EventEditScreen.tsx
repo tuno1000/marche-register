@@ -8,7 +8,7 @@ import { DiscardDialog } from '../../components/DiscardDialog';
 import { Header, HeaderAction } from '../../components/Header';
 import { showToast } from '../../components/Toast';
 import ui from '../../components/ui.module.css';
-import { getCurrentEventId, setCurrentEventId } from '../../db/kv';
+import { getCurrentEventId } from '../../db/kv';
 import { listCategories } from '../../db/repositories/categories';
 import {
   deleteEvent,
@@ -26,6 +26,7 @@ import { digitsOnly, todayString } from '../../lib/format';
 import { requestPersistentStorage } from '../../lib/storage';
 import { groupByCategory } from '../products/grouping';
 import styles from './EventEditScreen.module.css';
+import { useSwitchEvent } from './useSwitchEvent';
 
 const NAME_MAX = 40;
 
@@ -152,15 +153,7 @@ function EventForm({ initial }: { initial: Initial }) {
     }
   };
 
-  const makeCurrent = async () => {
-    if (!event) return;
-    try {
-      await setCurrentEventId(event.id);
-      showToast('現在のイベントにしました');
-    } catch (e) {
-      showToast(errorMessage(e));
-    }
-  };
+  const { switchTo, dialog: switchDialog } = useSwitchEvent();
 
   const remove = async () => {
     setConfirmDelete(false);
@@ -316,7 +309,7 @@ function EventForm({ initial }: { initial: Initial }) {
               <button
                 type="button"
                 className={`${ui.button} ${ui.block}`}
-                onClick={() => void makeCurrent()}
+                onClick={() => event && switchTo(event)}
               >
                 現在のイベントにする
               </button>
@@ -344,6 +337,7 @@ function EventForm({ initial }: { initial: Initial }) {
         onCancel={() => setConfirmDelete(false)}
       />
       <DiscardDialog held={held} onDone={() => setHeld(null)} />
+      {switchDialog}
     </>
   );
 }
