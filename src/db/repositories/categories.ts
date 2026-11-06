@@ -14,6 +14,15 @@ export async function listCategories(): Promise<Category[]> {
   return db.categories.orderBy('sortOrder').toArray();
 }
 
+/** カテゴリごとの商品数（削除した商品は数えない） */
+export async function countProductsByCategory(): Promise<Map<Id, number>> {
+  const counts = new Map<Id, number>();
+  await db.products.each((p) => {
+    if (p.deletedAt === null) counts.set(p.categoryId, (counts.get(p.categoryId) ?? 0) + 1);
+  });
+  return counts;
+}
+
 export async function createCategory(input: CategoryInput): Promise<Category> {
   const name = validName(input.name, 20, 'カテゴリ名');
   const color = validColor(input.color);

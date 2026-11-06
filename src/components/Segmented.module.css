@@ -1,0 +1,23 @@
+.group {
+  display: flex;
+  padding: 3px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+}
+
+.option {
+  flex: 1;
+  min-height: calc(var(--tap-min) - 6px);
+  padding: 0 var(--space-3);
+  border: none;
+  border-radius: calc(var(--radius) - 3px);
+  background: none;
+  color: var(--color-text-muted);
+  font-weight: 700;
+}
+
+.selected {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}

@@ -1,0 +1,54 @@
+.group + .group {
+  margin-top: var(--space-4);
+}
+
+.groupTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-sm);
+  font-weight: 700;
+}
+
+.stockRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+}
+
+.stockName {
+  font-weight: 700;
+}
+
+.stockControls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.qty {
+  width: 64px;
+  text-align: center;
+}
+
+.counts {
+  color: var(--color-text-muted);
+  font-size: var(--font-sm);
+  white-space: nowrap;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-bottom: var(--safe-bottom);
+}

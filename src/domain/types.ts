@@ -64,7 +64,13 @@ export interface Product {
 
 export interface ProductImage {
   productId: Id;
-  blob: Blob;
+  /**
+   * 画像のデータ（JPEG）。Blob ではなく ArrayBuffer で持つ。
+   * iPhone などの WebKit では、プライベートブラウズなどで Blob を保存できないことがあるため
+   */
+  data: ArrayBuffer;
+  /** 'image/jpeg' */
+  type: string;
   width: number;
   height: number;
 }

@@ -5,10 +5,18 @@ import { seedBasic } from '../../test/fixtures';
 import { getCurrentEventId, getSettings, setCurrentEventId, updateSettings } from '../kv';
 import { db } from '../schema';
 import { getCart, saveCart } from './cart';
-import { createCategory, deleteCategory, listCategories, moveCategory } from './categories';
-import { deleteEvent, listEventStocks, listEvents, createEvent } from './events';
+import {
+  countProductsByCategory,
+  createCategory,
+  deleteCategory,
+  listCategories,
+  moveCategory,
+} from './categories';
+import { deleteEvent, listEventStocks, listEvents, createEvent, saveEvent } from './events';
 import {
   createProduct,
+  defaultCategoryIdForNewProduct,
+  defaultTaxRateFor,
   deleteProduct,
   getProduct,
   listProducts,
@@ -140,7 +148,8 @@ describe('商品', () => {
     const { cookie } = await seedBasic();
     await setProductImage({
       productId: cookie.id,
-      blob: new Blob(['x'], { type: 'image/jpeg' }),
+      data: new Uint8Array([1, 2, 3]).buffer,
+      type: 'image/jpeg',
       width: 400,
       height: 300,
     });
@@ -201,5 +210,140 @@ describe('イベント', () => {
     });
     await voidTransaction(tx.id);
     await expectCode(deleteEvent(event.id), 'EVENT_HAS_TRANSACTIONS');
+  });
+});
+
+describe('M2 の画面から使う読み書き', () => {
+  const image = (w: number) => ({
+    data: new Uint8Array([1, 2, 3]).buffer,
+    type: 'image/jpeg',
+    width: w,
+    height: 100,
+  });
+
+  it('商品の追加と変更で、画像も一緒に保存・差し替え・削除できる', async () => {
+    const c = await createCategory({ name: 'A', color: 'c1' });
+    const p = await createProduct(
+      { name: 'X', price: 100, taxRate: 8, categoryId: c.id, tracksStock: false, isOnSale: true },
+      image(400),
+    );
+    expect(p.hasImage).toBe(true);
+    expect((await db.productImages.get(p.id))?.width).toBe(400);
+
+    await updateProduct(p.id, { price: 200 }); // 画像はそのまま
+    expect((await db.productImages.get(p.id))?.width).toBe(400);
+
+    await updateProduct(p.id, {}, image(300));
+    expect((await db.productImages.get(p.id))?.width).toBe(300);
+
+    await updateProduct(p.id, {}, null);
+    expect((await getProduct(p.id))?.hasImage).toBe(false);
+    expect(await db.productImages.get(p.id)).toBeUndefined();
+  });
+
+  it('入力が正しくなければ、画像も保存しない', async () => {
+    const c = await createCategory({ name: 'A', color: 'c1' });
+    await expectCode(
+      createProduct(
+        { name: '', price: 100, taxRate: 8, categoryId: c.id, tracksStock: false, isOnSale: true },
+        image(400),
+      ),
+      'INVALID_INPUT',
+    );
+    expect(await db.productImages.count()).toBe(0);
+  });
+
+  it('新しい商品の初期値：直前に登録した商品のカテゴリと、そのカテゴリの直前の商品の税率', async () => {
+    expect(await defaultCategoryIdForNewProduct()).toBeNull();
+    const a = await createCategory({ name: 'A', color: 'c1' });
+    const b = await createCategory({ name: 'B', color: 'c2' });
+    expect(await defaultCategoryIdForNewProduct()).toBe(a.id); // 商品がなければ先頭
+    expect(await defaultTaxRateFor(b.id)).toBe(8); // 商品がなければ 8%
+
+    const base = { price: 100, tracksStock: false, isOnSale: true };
+    await createProduct({ ...base, name: 'X', taxRate: 8, categoryId: a.id });
+    await new Promise((r) => setTimeout(r, 2));
+    await createProduct({ ...base, name: 'Y', taxRate: 10, categoryId: b.id });
+    expect(await defaultCategoryIdForNewProduct()).toBe(b.id);
+    expect(await defaultTaxRateFor(b.id)).toBe(10);
+    expect(await defaultTaxRateFor(a.id)).toBe(8);
+  });
+
+  it('カテゴリごとの商品数は、削除した商品を数えない', async () => {
+    const { category, cookie } = await seedBasic();
+    expect((await countProductsByCategory()).get(category.id)).toBe(2);
+    await deleteProduct(cookie.id);
+    expect((await countProductsByCategory()).get(category.id)).toBe(1);
+  });
+
+  it('イベントを新しく作ると、現在のイベントが未選択なら現在のイベントになる', async () => {
+    const input = { name: 'A', date: '2026-11-03', location: '', memo: '' };
+    const a = await saveEvent(null, input);
+    expect(await getCurrentEventId()).toBe(a.id);
+    await saveEvent(null, { ...input, name: 'B' });
+    expect(await getCurrentEventId()).toBe(a.id); // 選んであれば変えない
+  });
+
+  it('イベントと持ち込み数をまとめて保存する。変わっていない商品と、0 のままの商品は書かない', async () => {
+    const { cookie, muffin, event } = await seedBasic(); // クッキー 5、マフィン 3
+    const before = await listEventStocks(event.id);
+    const extra = await createProduct({
+      name: 'パン',
+      price: 200,
+      taxRate: 8,
+      categoryId: cookie.categoryId,
+      tracksStock: true,
+      isOnSale: true,
+    });
+
+    await saveEvent(
+      event.id,
+      { name: '新しい名前', date: '2026-11-04', location: '駅前', memo: '' },
+      new Map([
+        [cookie.id, 8],
+        [muffin.id, 3],
+        [extra.id, 0],
+      ]),
+    );
+
+    expect(await db.events.get(event.id)).toMatchObject({ name: '新しい名前', location: '駅前' });
+    const after = await listEventStocks(event.id);
+    expect(after.find((s) => s.productId === cookie.id)?.broughtQty).toBe(8);
+    // マフィンは変わっていないので、前の行のまま
+    expect(after.find((s) => s.productId === muffin.id)).toEqual(
+      before.find((s) => s.productId === muffin.id),
+    );
+    expect(after.some((s) => s.productId === extra.id)).toBe(false);
+  });
+
+  it('販売数より少ない持ち込み数があれば、イベントも在庫も何も保存しない', async () => {
+    const { cookie, muffin, event } = await seedBasic();
+    await checkout({
+      eventId: event.id,
+      lines: [{ productId: cookie.id, qty: 3, discount: null }],
+      orderDiscount: null,
+      tendered: 900,
+    });
+    await expectCode(
+      saveEvent(
+        event.id,
+        { name: '変更', date: '2026-11-03', location: '', memo: '' },
+        new Map([
+          [muffin.id, 9],
+          [cookie.id, 2],
+        ]),
+      ),
+      'BELOW_SOLD_QTY',
+    );
+    expect((await db.events.get(event.id))?.name).toBe('○○マルシェ');
+    expect(
+      (await listEventStocks(event.id)).find((s) => s.productId === muffin.id)?.broughtQty,
+    ).toBe(3);
+    // 販売数ちょうどなら保存できる
+    await saveEvent(
+      event.id,
+      { name: '変更', date: '2026-11-03', location: '', memo: '' },
+      new Map([[cookie.id, 3]]),
+    );
   });
 });

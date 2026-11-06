@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { useLocation, useNavigate } from 'react-router';
+import { useGoBack } from '../hooks/useGoBack';
 import styles from './Header.module.css';
 
 interface Props {
@@ -12,17 +12,7 @@ interface Props {
 
 /** 画面上部のヘッダー（02-画面設計 1.3） */
 export function Header({ title, backTo, right }: Props) {
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const goBack = () => {
-    // URL を直接開いたときなど、アプリ内で戻る先がない場合は backTo へ
-    if (location.key === 'default' && backTo) {
-      navigate(backTo, { replace: true });
-    } else {
-      navigate(-1);
-    }
-  };
+  const goBack = useGoBack(backTo ?? '/');
 
   return (
     <header className={styles.header}>
@@ -36,5 +26,20 @@ export function Header({ title, backTo, right }: Props) {
       <h1 className={styles.title}>{title}</h1>
       <div className={`${styles.side} ${styles.right}`}>{right}</div>
     </header>
+  );
+}
+
+interface ActionProps {
+  children: ReactNode;
+  onClick: () => void;
+  disabled?: boolean;
+}
+
+/** ヘッダーの右に置くボタン（［保存］［並べ替え］など） */
+export function HeaderAction({ children, onClick, disabled }: ActionProps) {
+  return (
+    <button type="button" className={styles.action} onClick={onClick} disabled={disabled}>
+      {children}
+    </button>
   );
 }

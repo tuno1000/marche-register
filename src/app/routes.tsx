@@ -16,10 +16,12 @@ import { SettingsScreen } from '../features/settings/SettingsScreen';
 import { SummaryScreen } from '../features/summary/SummaryScreen';
 import { ErrorScreen } from './ErrorScreen';
 import { FullScreenLayout, TabLayout } from './Layouts';
+import { RootLayout } from './RootLayout';
 
 /** 画面と URL の対応（04-技術設計 3 章） */
 export const routes: RouteObject[] = [
   {
+    element: <RootLayout />,
     errorElement: <ErrorScreen />,
     children: [
       {

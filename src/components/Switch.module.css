@@ -1,0 +1,67 @@
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: var(--tap-min);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+}
+
+.label {
+  font-weight: 700;
+}
+
+.description {
+  color: var(--color-text-muted);
+  font-size: var(--font-sm);
+}
+
+.switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 76px;
+  height: 36px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface-strong);
+}
+
+.knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--color-bg);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 30%);
+  transition: transform 0.15s;
+}
+
+.state {
+  position: absolute;
+  top: 0;
+  right: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 34px;
+}
+
+.on {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.on .knob {
+  transform: translateX(40px);
+}
+
+.on .state {
+  right: auto;
+  left: 10px;
+}

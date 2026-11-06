@@ -1,0 +1,22 @@
+.area {
+  position: fixed;
+  right: 0;
+  /* 下のタブや、画面の下の［追加］ボタンに重ならない高さ */
+  bottom: calc(var(--tabbar-height) + var(--safe-bottom) + 40px);
+  left: 0;
+  z-index: 300;
+  display: flex;
+  justify-content: center;
+  padding: 0 var(--space-4);
+  pointer-events: none;
+}
+
+.toast {
+  max-width: 400px;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
+  background: var(--color-text);
+  color: var(--color-bg);
+  font-weight: 700;
+  text-align: center;
+}

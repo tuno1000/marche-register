@@ -1,0 +1,44 @@
+.imageRow {
+  display: flex;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.preview {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  height: 120px;
+  border-radius: var(--radius);
+  background: var(--color-surface-strong);
+  color: var(--color-text-muted);
+  font-size: var(--font-sm);
+  object-fit: cover;
+}
+
+.imageButtons {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.priceRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.priceRow input {
+  max-width: 160px;
+  text-align: right;
+}
+
+.deleteArea {
+  margin-top: var(--space-5);
+  padding-top: var(--space-5);
+  padding-bottom: var(--safe-bottom);
+  border-top: 1px solid var(--color-border);
+}

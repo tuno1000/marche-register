@@ -1,8 +1,10 @@
 # データ設計書：マルシェ用スマホレジ PWA
 
-- 版：1.0
+- 版：1.1
 - 作成日：2026-11-06
 - 状態：**確定**（2026-11-06）
+- 変更履歴
+  - 1.1 M2 の実装に合わせて、商品画像を Blob ではなく ArrayBuffer（と形式 `type`）で保存するように変更（iPhone などの WebKit では、プライベートブラウズなどで Blob を保存できないことがあるため）
 - 前提：[01-要件定義](./01-requirements.md) v1.2、[02-画面設計](./02-screen-design.md) v1.1
 
 ---
@@ -37,7 +39,7 @@ erDiagram
 |---|---|---|---|
 | `categories` | カテゴリ | `id` | `sortOrder` |
 | `products` | 商品 | `id` | `categoryId`、`sortOrder` |
-| `productImages` | 商品画像（Blob） | `productId` | — |
+| `productImages` | 商品画像（ArrayBuffer） | `productId` | — |
 | `events` | イベント | `id` | `date` |
 | `eventStocks` | イベントごとの持ち込み数 | `[eventId+productId]` | `eventId` |
 | `transactions` | 取引（明細を埋め込む） | `id` | `eventId`、`[eventId+seq]`、`createdAt` |
@@ -117,7 +119,8 @@ interface Product {
 ```ts
 interface ProductImage {
   productId: Id;
-  blob: Blob;             // 長辺 400px、JPEG（要件定義 6.6）
+  data: ArrayBuffer;      // 長辺 400px、JPEG（要件定義 6.6）
+  type: string;           // 'image/jpeg'
   width: number;
   height: number;
 }
@@ -375,7 +378,7 @@ interface Cart {
 ```
 
 - ファイル名：`marche-register-backup-YYYYMMDD-HHmm.json`
-- 画像は Blob のままでは JSON にできないので、Base64 の文字列にする（50 枚で約 3.4MB）
+- 画像は ArrayBuffer のままでは JSON にできないので、Base64 の文字列にする（50 枚で約 3.4MB）
 - カートと `installWarningDismissed` は含めない（その端末だけの一時的な状態のため）
 - 書き出したら `lastBackupAt` を更新する
 - **復元のチェック**

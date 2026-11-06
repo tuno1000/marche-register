@@ -1,0 +1,251 @@
+/* 画面で共通に使う見た目（ボタン、入力欄、一覧） */
+
+/* スクロールする本文 */
+.body {
+  flex: 1;
+  min-height: 0;
+  padding: var(--space-4);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 画面の下に固定する操作ボタンの欄 */
+.footer {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4) calc(var(--space-3) + var(--safe-bottom));
+  border-top: 1px solid var(--color-border);
+  background: var(--color-bg);
+}
+
+.section + .section {
+  margin-top: var(--space-5);
+}
+
+.sectionTitle {
+  margin: 0 0 var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-sm);
+  font-weight: 700;
+}
+
+/* ボタン */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-width: var(--tap-min);
+  min-height: var(--tap-min);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-weight: 700;
+  text-decoration: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.button:active:not(:disabled) {
+  background: var(--color-surface-strong);
+}
+
+.button:disabled {
+  opacity: 0.45;
+}
+
+.primary {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.primary:active:not(:disabled) {
+  background: var(--color-primary-pressed);
+}
+
+.danger {
+  border-color: var(--color-danger);
+  background: var(--color-bg);
+  color: var(--color-danger);
+}
+
+.dangerFilled {
+  border-color: var(--color-danger);
+  background: var(--color-danger);
+  color: var(--color-on-danger);
+}
+
+.large {
+  min-height: var(--tap-checkout);
+}
+
+.block {
+  width: 100%;
+}
+
+/* 入力欄 */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.field + .field {
+  margin-top: var(--space-4);
+}
+
+.label {
+  font-size: var(--font-sm);
+  font-weight: 700;
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  min-height: var(--tap-min);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+}
+
+.textarea {
+  min-height: 88px;
+  resize: vertical;
+}
+
+.input[aria-invalid='true'] {
+  border-color: var(--color-danger);
+}
+
+.error {
+  margin: 0;
+  color: var(--color-danger);
+  font-size: var(--font-sm);
+}
+
+.hint {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-sm);
+}
+
+/* 一覧 */
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.list > li + li {
+  border-top: 1px solid var(--color-border);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: var(--tap-checkout);
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  background: var(--color-bg);
+  color: var(--color-text);
+  text-align: left;
+  text-decoration: none;
+}
+
+button.row:active,
+a.row:active {
+  background: var(--color-surface);
+}
+
+.rowMain {
+  flex: 1;
+  min-width: 0;
+}
+
+.rowTitle {
+  display: block;
+  overflow: hidden;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rowSub {
+  display: block;
+  color: var(--color-text-muted);
+  font-size: var(--font-sm);
+}
+
+.badge {
+  display: inline-block;
+  padding: 0 var(--space-2);
+  border-radius: 999px;
+  background: var(--color-surface-strong);
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 22px;
+  white-space: nowrap;
+}
+
+.badgePrimary {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.dimmed {
+  opacity: 0.55;
+}
+
+/* ［↑］［↓］の並べ替えボタン */
+.moveButtons {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.empty {
+  margin: var(--space-5) 0;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+/* 横並び（ボタンを 2 つ並べるときなど） */
+.inline {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.inline > .button {
+  flex: 1;
+}
+
+/* 行の右に［↑］［↓］などのボタンを並べる */
+.rowWithActions {
+  display: flex;
+  align-items: center;
+  padding-right: var(--space-2);
+  background: var(--color-bg);
+}
+
+/* 商品画像の小さな表示 */
+.thumb {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: var(--color-surface-strong);
+  object-fit: cover;
+}
