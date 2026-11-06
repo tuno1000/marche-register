@@ -63,11 +63,24 @@
 | DD-3 イベント | 会計したことのないイベントだけ削除できる |
 | CSV | 15 列、明細単位、取消も「状態」列付きで出力する。お預かり・お釣りは出さない |
 
+- **04-技術設計** を作って確定した（`docs/04-technical-design.md` v1.0）。01 は v1.3、02 は v1.2 に更新
+
+### 04-技術設計の主な決定事項
+| 分類 | 決定内容 |
+|---|---|
+| ライブラリ | React Router（ハッシュ方式）、Dexie ＋ dexie-react-hooks、Zustand（カートだけ）、qrcode、Zod |
+| スタイル | CSS Modules ＋ CSS 変数（Tailwind は使わない） |
+| テスト | Vitest ＋ fake-indexeddb ＋ Testing Library、Playwright（WebKit と Chromium） |
+| ファイル保存 | iPhone は共有メニュー、Android はダウンロード |
+| DT-1 URL | リポジトリ名を `marche-register` に変える。URL は `https://tuno1000.github.io/marche-register/` |
+| DT-2 画面 | 会計・お預かり・会計直後のレシートの間は、画面が暗くならないようにする |
+
 ### git の状態
 - ブランチ：`docs/requirements`（push はしていない）
-- 03-データ設計、01・02 の更新、この記録はまだコミットしていない
+- `deadc9b` データ設計書を追加し確定
+- 04-技術設計、01・02 の更新、この記録の追記はまだコミットしていない
+- GitHub のリポジトリ名の変更は、ユーザーにお願いしている。変わったら `git remote set-url origin git@github.com:tuno1000/marche-register.git` を実行する
 
 ### 次にやること
-1. **04-技術設計**：ディレクトリ構成、PWA のキャッシュと更新の流れ、状態管理、スタイルの方式、テストツール
-2. 05-実装計画・テスト方針：マイルストーン、テスト観点、実機での確認項目（iPhone と Android）
-3. ドキュメントがそろったら実装を始める
+1. **05-実装計画・テスト方針**：マイルストーン、テスト観点、実機での確認項目（iPhone と Android）
+2. ドキュメントがそろったら実装を始める
