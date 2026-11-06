@@ -1,0 +1,25 @@
+.no {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.time,
+.qty {
+  color: var(--color-text-muted);
+  font-size: var(--font-sm);
+}
+
+.total {
+  flex: 1;
+  font-weight: 700;
+  text-align: right;
+}
+
+/* 取り消した取引は打ち消し線（02-画面設計 S-03） */
+.voided .no,
+.voided .time,
+.voided .qty,
+.voided .total {
+  color: var(--color-text-muted);
+  text-decoration: line-through;
+}

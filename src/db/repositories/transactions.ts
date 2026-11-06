@@ -138,3 +138,8 @@ export async function listTransactions(eventId: Id): Promise<Transaction[]> {
 export async function getTransaction(id: Id): Promise<Transaction | undefined> {
   return db.transactions.get(id);
 }
+
+/** すべてのイベントの取引（集計の「全イベント」用） */
+export async function listAllTransactions(): Promise<Transaction[]> {
+  return db.transactions.orderBy('createdAt').reverse().toArray();
+}

@@ -1,0 +1,76 @@
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+.stats {
+  margin: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.stat {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  min-height: var(--tap-min);
+  padding: var(--space-2) var(--space-3);
+}
+
+.stat + .stat {
+  border-top: 1px solid var(--color-border);
+}
+
+.stat dt {
+  color: var(--color-text-muted);
+  font-weight: 700;
+}
+
+.stat dd {
+  margin: 0;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.strong {
+  font-size: var(--font-xl);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.table caption {
+  text-align: left;
+}
+
+.table th,
+.table td {
+  padding: var(--space-2) var(--space-1);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.table thead th {
+  color: var(--color-text-muted);
+  font-size: var(--font-sm);
+}
+
+.table th:first-child {
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.table td,
+.table thead th:not(:first-child) {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.table tbody th {
+  font-weight: 700;
+}
