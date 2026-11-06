@@ -1,0 +1,90 @@
+/*
+ * 色とサイズの定義（04-技術設計 6 章）
+ * 画面の色は、必ずここの変数を使う。
+ * テーマは <html data-theme="light|dark"> で切り替える。スマホ本体の設定には連動しない（02-画面設計 D-6）。
+ */
+:root {
+  --tap-min: 44px;
+  --tap-checkout: 56px;
+  --radius: 10px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --header-height: 52px;
+  --tabbar-height: 56px;
+  --font-sm: 14px;
+  --font-md: 16px;
+  --font-lg: 20px;
+  --font-xl: 28px;
+  --font-xxl: 40px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+}
+
+/* ライト：屋外の直射日光でも読めるよう、白い背景で高コントラスト */
+:root,
+[data-theme='light'] {
+  color-scheme: light;
+  --color-bg: #ffffff;
+  --color-surface: #f2f3f1;
+  --color-surface-strong: #e3e5e1;
+  --color-text: #111111;
+  --color-text-muted: #4d4d4d;
+  --color-border: #c4c7c2;
+  --color-primary: #1f6f43;
+  --color-primary-pressed: #17573a;
+  --color-on-primary: #ffffff;
+  --color-danger: #c0261f;
+  --color-on-danger: #ffffff;
+  --color-highlight: #fff3b0;
+  --color-overlay: rgb(0 0 0 / 45%);
+
+  /* カテゴリの 12 色（白い文字が読める濃さ）。03-データ設計 3.1 */
+  --cat-c1: #c0392b;
+  --cat-c2: #d35400;
+  --cat-c3: #9a7400;
+  --cat-c4: #5d7d14;
+  --cat-c5: #1e8449;
+  --cat-c6: #0e7c74;
+  --cat-c7: #1f6fa8;
+  --cat-c8: #2e4fa3;
+  --cat-c9: #6a3fa0;
+  --cat-c10: #a33a7d;
+  --cat-c11: #7b5a3c;
+  --cat-c12: #55606b;
+}
+
+/* ダーク：夜市や屋内の暗い会場向け。まぶしさを抑える */
+[data-theme='dark'] {
+  color-scheme: dark;
+  --color-bg: #121212;
+  --color-surface: #1e1f1e;
+  --color-surface-strong: #2b2d2b;
+  --color-text: #f1f1f1;
+  --color-text-muted: #b5b5b5;
+  --color-border: #444844;
+  --color-primary: #4fbf82;
+  --color-primary-pressed: #3fa56e;
+  --color-on-primary: #08210f;
+  --color-danger: #ff6b61;
+  --color-on-danger: #2a0000;
+  --color-highlight: #4a4320;
+  --color-overlay: rgb(0 0 0 / 60%);
+
+  --cat-c1: #b03a2e;
+  --cat-c2: #b9500c;
+  --cat-c3: #8a6a00;
+  --cat-c4: #567318;
+  --cat-c5: #1d7a45;
+  --cat-c6: #11716a;
+  --cat-c7: #1e6499;
+  --cat-c8: #344f96;
+  --cat-c9: #643c96;
+  --cat-c10: #963676;
+  --cat-c11: #725439;
+  --cat-c12: #525c66;
+}

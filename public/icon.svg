@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#1f6f43"/>
+  <!-- テントの屋根（マルシェの屋台） -->
+  <path d="M96 196 L136 112 H376 L416 196 Z" fill="#ffffff"/>
+  <path d="M136 112 L160 196 M216 112 L224 196 M296 112 L288 196 M376 112 L352 196" stroke="#1f6f43" stroke-width="10"/>
+  <path d="M96 196 q32 36 64 0 q32 36 64 0 q32 36 64 0 q32 36 64 0 q32 36 64 0" fill="#ffffff"/>
+  <!-- レジの台 -->
+  <rect x="140" y="250" width="232" height="170" rx="20" fill="#ffffff"/>
+  <rect x="172" y="280" width="168" height="44" rx="8" fill="#1f6f43"/>
+  <g fill="#1f6f43">
+    <rect x="172" y="344" width="44" height="28" rx="6"/>
+    <rect x="234" y="344" width="44" height="28" rx="6"/>
+    <rect x="296" y="344" width="44" height="28" rx="6"/>
+  </g>
+</svg>

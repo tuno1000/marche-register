@@ -1,0 +1,32 @@
+.bar {
+  display: grid;
+  flex-shrink: 0;
+  grid-template-columns: repeat(4, 1fr);
+  padding-bottom: var(--safe-bottom);
+  border-top: 1px solid var(--color-border);
+  background: var(--color-bg);
+}
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: var(--tabbar-height);
+  color: var(--color-text-muted);
+  font-size: 12px;
+  text-decoration: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.active {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.icon {
+  width: 24px;
+  height: 24px;
+}

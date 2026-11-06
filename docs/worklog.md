@@ -95,3 +95,21 @@
 ### 次にやること
 1. 実装の準備（05 の 1.1）：リポジトリ名の変更と公開設定 → 接続先の変更 → ドキュメントのブランチを `main` に入れる → Pages の公開元を GitHub Actions にする
 2. **M0 土台** から実装を始める
+
+### 実装：M0 土台（ブランチ `feature/m0-foundation`）
+- リポジトリ名の変更を受けて、手元の接続先を `git@github.com:tuno1000/marche-register.git` に変えた。ただし開発環境から GitHub に接続できなかった（SSH の鍵がない）。GitHub への送信は、iPhone で試すときまで後回しにした
+- 作ったもの
+  - プロジェクトの土台：Vite 8、React 19、TypeScript 6.0、ESLint、Prettier、Vitest、Playwright
+    - TypeScript は 7.0 が出ているが、typescript-eslint が 6.0 までの対応なので 6.0 系にした
+  - テーマの色（`src/styles/tokens.css`）：ライト / ダーク、カテゴリの 12 色
+  - ヘッダー、下のタブ（会計 / 履歴 / 集計 / その他）、画面の切り替え（04 の 3 章の URL をすべて用意。中身は仮の表示）
+  - その他メニュー（S-05）と、設定画面のバージョン表示
+  - PWA：マニフェスト、アイコン（`public/icon.svg` から `npm run icons` で作る）、Service Worker（オフライン起動）
+  - GitHub Actions（`.github/workflows/ci.yml`）：チェックと GitHub Pages への公開
+- テスト：単体 5 件、画面を通したテスト 8 件（iPhone と Android の画面、オフライン起動を含む）がすべて通った
+- 開発環境に Playwright の WebKit 用の部品を入れた（`sudo npx playwright install-deps webkit`）。開発環境を作り直したときは、もう一度必要
+- `npm audit` で開発用ツールの中の部品（glob、minimatch、deepmerge）に注意が出ている。アプリ本体には含まれない
+
+### M0 で残っていること
+- コミット（指示待ち）
+- GitHub への送信と公開 → iPhone 15 での確認（05 の R-1〜R-3）
