@@ -1,0 +1,44 @@
+.banners {
+  flex-shrink: 0;
+}
+
+.update {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-4);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-size: var(--font-sm);
+  font-weight: 700;
+}
+
+.updateButton {
+  min-height: var(--tap-min);
+  padding: 0 var(--space-4);
+  border: 2px solid var(--color-on-primary);
+  border-radius: var(--radius);
+  background: none;
+  color: var(--color-on-primary);
+  font-weight: 700;
+}
+
+.warning {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 2px var(--space-4);
+  background: var(--color-highlight);
+  color: var(--color-text);
+  font-size: 12px;
+}
+
+.warningLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  color: var(--color-text);
+  font-weight: 700;
+}

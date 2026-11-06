@@ -64,7 +64,8 @@ describe('S-05c カテゴリ', () => {
     await waitFor(async () =>
       expect((await listCategories()).map((c) => c.name)).toEqual(['パン', '焼き菓子']),
     );
-    expect(await screen.findByRole('button', { name: 'パンを上へ' })).toBeDisabled();
+    // 一覧が描き直されるのを待つ
+    await waitFor(() => expect(screen.getByRole('button', { name: 'パンを上へ' })).toBeDisabled());
   });
 
   it('Android の戻るボタンでは、シートだけ閉じて画面は移らない', async () => {

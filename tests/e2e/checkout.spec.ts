@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { cart, productButton, setupShop } from './helpers';
 
 test('E-2 会計：明細と全体の値引き → お預かり → レシートの金額が 03 の 4.3 と同じ', async ({

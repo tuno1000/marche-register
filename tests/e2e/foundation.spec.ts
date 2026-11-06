@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 test('起動すると会計画面と下のタブが表示される', async ({ page }) => {
   await page.goto('./');

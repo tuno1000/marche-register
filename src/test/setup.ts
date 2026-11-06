@@ -16,3 +16,7 @@ if (!URL.createObjectURL) {
   URL.createObjectURL = () => `blob:test/${++n}`;
   URL.revokeObjectURL = () => {};
 }
+
+// テストでは、ふだんはホーム画面から起動していることにする（インストール案内を出さない）。
+// インストール案内のテストでは false にする
+Object.defineProperty(navigator, 'standalone', { value: true, writable: true, configurable: true });

@@ -1,3 +1,5 @@
+import { isIos } from './device';
+
 /**
  * ファイルの保存（04-技術設計 7.2）
  * - iPhone：共有メニューを開く（「ファイルに保存」や AirDrop、LINE などを選べる）
@@ -35,12 +37,6 @@ function download(blob: Blob, fileName: string): void {
   a.remove();
   // すぐに解放すると保存できないブラウザがあるので、少し待つ
   setTimeout(() => URL.revokeObjectURL(url), 10_000);
-}
-
-/** iPhone・iPad か（iPad は Mac と同じ表示になることがあるので、タッチの有無でも見分ける） */
-export function isIos(): boolean {
-  const ua = navigator.userAgent;
-  return /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
 }
 
 /** 選んだファイルを文字として読む */

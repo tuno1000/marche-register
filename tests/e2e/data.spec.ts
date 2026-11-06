@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
-import { expect, test, type Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { cart, productButton, setupShop } from './helpers';
 
 /** クッキー ×2（10% 引き）＋ マフィン ×1、全体 100 円引き → ¥890（03 の 4.3） */

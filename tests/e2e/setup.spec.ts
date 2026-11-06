@@ -1,4 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 /** 横 800 × 縦 600 の PNG（縮小されて 400 × 300 になるはず）をブラウザの中で作る */
 async function makePng(page: Page): Promise<Buffer> {
