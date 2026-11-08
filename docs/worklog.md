@@ -325,3 +325,13 @@
 - GitHub にあるのは `docs/requirements`（04 まで）と `feature/m1-data` だけ。M2 以降はまだ送っていない
 - 開発環境から GitHub に接続できない（SSH の鍵がない）
 - コミットしていないもの：`.devcontainer/`、`README.md`（開発環境の作業分。意図的に含めない）
+
+### 公開（2026-11-07）
+- M0〜M6 を `main` に取り込んだ（`feature/m6-install-update` から早送り）。GitHub への `git push` は手動で行う
+- GitHub Pages の公開元を「GitHub Actions」にして、CI から公開した：https://tuno1000.github.io/marche-register/
+  - 最初の push のときは Pages が有効になっておらず、deploy が 404 で失敗した。また、公開元が「Deploy from a branch」になっていたあいだは、ビルド前のソースがそのまま公開され、何も表示されなかった。公開元を変えたあと、CI を実行し直して公開できた
+- GitHub Actions に「Node.js 20 は非推奨」という警告が出ている（`actions/checkout@v4` など）。今は動くので、あとで新しい版にする
+
+### 次にやること
+1. iPhone 15 の Safari で開き、ホーム画面に追加して、実機での確認をする（05 の 5 章、M5・M6 の「実機で確かめたいこと」）
+2. 見つかった問題を直す → 模擬出店（05 の 6 章）→ v1.0.0

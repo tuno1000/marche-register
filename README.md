@@ -1,1 +1,1 @@
-# claude-code-book-template
+# claude-cash-register-pwa
