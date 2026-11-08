@@ -1,7 +1,7 @@
 import { discountAmount } from './discount';
 import { allocate, assertNonNegativeInt, floorDiv } from './integer';
 import type { Discount, Id, TaxRate, TaxSummary, TransactionLine, Yen } from './types';
-import { TAX_RATES } from './types';
+import { TAX_INCLUDED, TAX_RATES } from './types';
 
 /** 計算に使う明細（会計時点の商品の情報） */
 export interface CheckoutLineInput {
@@ -89,13 +89,15 @@ export function calculateCheckout(
     };
   });
 
-  // 手順 8：税率ごとの内消費税（1 取引・1 税率ごとに 1 回だけ切り捨て）
-  const taxes: TaxSummary[] = rates.map((rate) => {
-    const taxableAmount = sum(
-      resultLines.filter((l) => l.taxRate === rate).map((l) => l.netAmount),
-    );
-    return { rate, taxableAmount, taxAmount: includedTax(taxableAmount, rate) };
-  });
+  // 手順 8：税率ごとの内消費税（1 取引・1 税率ごとに 1 回だけ切り捨て）。「税込み」は計算しない
+  const taxes: TaxSummary[] = rates
+    .filter((rate) => rate !== TAX_INCLUDED)
+    .map((rate) => {
+      const taxableAmount = sum(
+        resultLines.filter((l) => l.taxRate === rate).map((l) => l.netAmount),
+      );
+      return { rate, taxableAmount, taxAmount: includedTax(taxableAmount, rate) };
+    });
 
   // 手順 9
   return {

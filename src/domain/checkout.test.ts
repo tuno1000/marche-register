@@ -22,6 +22,18 @@ function line(
 }
 
 describe('1 取引の計算（03 の 4.2）', () => {
+  it('1% は内税を計算し、「税込み」は全体値引きを按分するが内税を計算しない', () => {
+    const r = calculateCheckout([line('A', 1010, 1, 1), line('B', 500, 0, 2)], {
+      kind: 'yen',
+      value: 201,
+    });
+    // 按分：1% は floor(201 × 1010 ÷ 2010) ＝ 100、税込みは floor(201 × 1000 ÷ 2010) ＝ 100。余り 1 円は合計の大きい 1% へ
+    expect(r.lines.map((l) => l.netAmount)).toEqual([909, 900]);
+    expect(r.total).toBe(1809);
+    // 内税 floor(909 × 1 ÷ 101) ＝ 9。「税込み」は taxes に出さない
+    expect(r.taxes).toEqual([{ rate: 1, taxableAmount: 909, taxAmount: 9 }]);
+  });
+
   it('03 の 4.3 の計算例（画面設計 S-02 のレシート）', () => {
     const r = calculateCheckout(
       [
@@ -123,7 +135,7 @@ describe('必ず成り立つこと（ランダムな 1,000 通りの取引）', 
       line(
         `P${i}`,
         rand.pick([0, 50, 100, 150, 280, 300, 450, 555, 1200, 3800]),
-        rand.pick([8, 10] as const),
+        rand.pick([0, 1, 8, 10] as const),
         rand.int(1, 5),
         randomDiscount(),
       ),
@@ -137,8 +149,10 @@ describe('必ず成り立つこと（ランダムな 1,000 通りの取引）', 
       for (const l of r.lines) expect(l.netAmount).toBeGreaterThanOrEqual(0);
       // ② netAmount の合計 ＝ total
       expect(sum(r.lines.map((l) => l.netAmount))).toBe(r.total);
-      // ③ 税率別の対象額の合計 ＝ total
-      expect(sum(r.taxes.map((t) => t.taxableAmount))).toBe(r.total);
+      // ③ 税率別の対象額の合計 ＋「税込み」の明細の合計 ＝ total
+      const included = sum(r.lines.filter((l) => l.taxRate === 0).map((l) => l.netAmount));
+      expect(sum(r.taxes.map((t) => t.taxableAmount)) + included).toBe(r.total);
+      expect(r.taxes.some((t) => t.rate === 0)).toBe(false);
       // ④ 按分額の合計 ＝ 全体値引きの額
       expect(sum(r.lines.map((l) => l.orderDiscountShare))).toBe(r.orderDiscountAmount);
       // 金額はすべて整数

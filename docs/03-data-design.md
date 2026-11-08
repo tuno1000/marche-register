@@ -73,7 +73,7 @@ type Id = string;            // UUID
 type Yen = number;           // 円単位の整数
 type EpochMs = number;       // Date.now() の値
 type DateString = string;    // 'YYYY-MM-DD'
-type TaxRate = 8 | 10;
+type TaxRate = 0 | 1 | 8 | 10;   // 0 は「税込み」（内消費税を計算しない）
 type Rounding = 'floor' | 'ceil' | 'round10';  // 切り捨て / 切り上げ / 10 円単位
 type CategoryColor =
   | 'c1' | 'c2' | 'c3' | 'c4' | 'c5' | 'c6'
@@ -300,7 +300,7 @@ interface Cart {
 5. **税率ごとに按分する**：税率別の `afterLine` 合計の比率で分け、1 円未満は切り捨てる。余った 1 円は、合計の大きい税率に足す（同じ額なら 10% に足す）
 6. **税率の中で明細ごとに按分する**：その税率の按分額を、明細の `afterLine` の比率で分け、1 円未満は切り捨てる。余りは `afterLine` の大きい明細から順に 1 円ずつ足す（同じ額なら行番号の小さい明細から）
 7. `netAmount ＝ afterLine − orderDiscountShare`
-8. 税率ごとに `taxableAmount ＝ netAmount の合計`、`taxAmount ＝ floor(taxableAmount × 税率 ÷ (100 + 税率))`
+8. 税率ごとに `taxableAmount ＝ netAmount の合計`、`taxAmount ＝ floor(taxableAmount × 税率 ÷ (100 + 税率))`。「税込み」（0）は 5〜7 の按分には加えるが、`taxes` には入れない
 9. `total ＝ subtotal − orderDiscountAmount`（＝ すべての `netAmount` の合計）
 
 手順 6 は、商品別の集計と CSV で「全体値引きを商品ごとにいくら引いたか」を出すために必要になる。
@@ -407,7 +407,7 @@ interface Cart {
 | 6 | 明細番号 | 1 | `lineNo` |
 | 7 | 商品名 | クッキー | `productName` |
 | 8 | カテゴリ | 焼き菓子 | `categoryName` |
-| 9 | 税率 | 8% | `taxRate` |
+| 9 | 税率 | 8%（「税込み」は 税込み） | `taxRate` |
 | 10 | 単価 | 300 | `unitPrice` |
 | 11 | 数量 | 2 | `qty` |
 | 12 | 小計 | 600 | `grossAmount` |

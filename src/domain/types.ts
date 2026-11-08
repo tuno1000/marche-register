@@ -10,13 +10,25 @@ export type Yen = number;
 export type EpochMs = number;
 /** 'YYYY-MM-DD' */
 export type DateString = string;
-export type TaxRate = 8 | 10;
+/**
+ * 税率。0 は「税込み」：税率を決めずに扱い、内消費税を計算しない
+ * （レシートの税率別の欄と集計の税率別の表には出さない）
+ */
+export type TaxRate = 0 | 1 | 8 | 10;
 /** 切り捨て / 切り上げ / 10 円単位 */
 export type Rounding = 'floor' | 'ceil' | 'round10';
 export type CategoryColor =
   'c1' | 'c2' | 'c3' | 'c4' | 'c5' | 'c6' | 'c7' | 'c8' | 'c9' | 'c10' | 'c11' | 'c12';
 
-export const TAX_RATES: readonly TaxRate[] = [8, 10];
+/** 「税込み」（内消費税を計算しない） */
+export const TAX_INCLUDED = 0;
+/** 選ぶときの並び順 */
+export const TAX_RATES: readonly TaxRate[] = [1, 8, 10, TAX_INCLUDED];
+
+/** 税率の表示：'8%'、「税込み」 */
+export function taxRateLabel(rate: TaxRate): string {
+  return rate === TAX_INCLUDED ? '税込み' : `${rate}%`;
+}
 export const CATEGORY_COLORS: readonly CategoryColor[] = [
   'c1',
   'c2',

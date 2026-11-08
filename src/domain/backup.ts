@@ -164,7 +164,7 @@ export function fromBackupImage(image: BackupImage): ProductImage {
 const int = z.number().int();
 const nonNegInt = int.min(0);
 const yen = nonNegInt;
-const taxRate = z.union([z.literal(8), z.literal(10)]);
+const taxRate = z.union([z.literal(0), z.literal(1), z.literal(8), z.literal(10)]);
 const rounding = z.enum(['floor', 'ceil', 'round10']);
 const discount = z.union([
   z.object({ kind: z.literal('yen'), value: yen }),

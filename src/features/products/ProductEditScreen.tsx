@@ -18,7 +18,13 @@ import {
   getProduct,
   updateProduct,
 } from '../../db/repositories/products';
-import type { Category, Product, TaxRate } from '../../domain/types';
+import {
+  TAX_RATES,
+  taxRateLabel,
+  type Category,
+  type Product,
+  type TaxRate,
+} from '../../domain/types';
 import { useGoBack } from '../../hooks/useGoBack';
 import { useProductImageUrl } from '../../hooks/useProductImageUrl';
 import { errorMessage } from '../../lib/errorMessage';
@@ -28,10 +34,7 @@ import { requestPersistentStorage } from '../../lib/storage';
 import styles from './ProductEditScreen.module.css';
 
 const NAME_MAX = 40;
-const TAX_OPTIONS = [
-  { value: 8, label: '8%' },
-  { value: 10, label: '10%' },
-] as const;
+const TAX_OPTIONS = TAX_RATES.map((rate) => ({ value: rate, label: taxRateLabel(rate) }));
 
 interface Form {
   name: string;

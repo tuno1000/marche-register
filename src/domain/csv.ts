@@ -1,4 +1,4 @@
-import type { Transaction } from './types';
+import { taxRateLabel, type Transaction } from './types';
 
 /**
  * CSV の組み立て（03-データ設計 8 章）
@@ -43,7 +43,7 @@ export function buildCsv(transactions: readonly Transaction[]): string {
         l.lineNo,
         l.productName,
         l.categoryName,
-        `${l.taxRate}%`,
+        taxRateLabel(l.taxRate),
         l.unitPrice,
         l.qty,
         l.grossAmount,

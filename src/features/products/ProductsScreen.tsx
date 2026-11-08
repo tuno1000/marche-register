@@ -7,7 +7,7 @@ import { showToast } from '../../components/Toast';
 import ui from '../../components/ui.module.css';
 import { listCategories } from '../../db/repositories/categories';
 import { listProducts, moveProduct } from '../../db/repositories/products';
-import type { Product } from '../../domain/types';
+import { taxRateLabel, type Product } from '../../domain/types';
 import { useProductImageUrl } from '../../hooks/useProductImageUrl';
 import { errorMessage } from '../../lib/errorMessage';
 import { formatYen } from '../../lib/format';
@@ -128,7 +128,8 @@ function ProductSummary({ product }: { product: Product }) {
       <span className={`${ui.rowMain} ${product.isOnSale ? '' : ui.dimmed}`}>
         <span className={ui.rowTitle}>{product.name}</span>
         <span className={ui.rowSub}>
-          <span className={styles.price}>{formatYen(product.price)}</span>・{product.taxRate}%
+          <span className={styles.price}>{formatYen(product.price)}</span>・
+          {taxRateLabel(product.taxRate)}
           {product.tracksStock ? '・在庫を管理' : ''}
         </span>
       </span>
