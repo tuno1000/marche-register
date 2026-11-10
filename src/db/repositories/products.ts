@@ -7,7 +7,8 @@ import { removeProductFromCart } from './cart';
 
 export interface ProductInput {
   name: string;
-  price: number;
+  /** null は「会計のときに金額を入力する」 */
+  price: number | null;
   taxRate: TaxRate;
   categoryId: Id;
   tracksStock: boolean;
@@ -159,7 +160,7 @@ export async function removeProductImage(productId: Id): Promise<void> {
 function validate(input: ProductInput): ProductInput {
   return {
     name: validName(input.name, 40, '商品名'),
-    price: validNonNegativeInt(input.price, '価格'),
+    price: input.price === null ? null : validNonNegativeInt(input.price, '価格'),
     taxRate: validTaxRate(input.taxRate),
     categoryId: input.categoryId,
     tracksStock: input.tracksStock,

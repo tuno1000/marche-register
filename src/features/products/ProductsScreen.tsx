@@ -128,8 +128,10 @@ function ProductSummary({ product }: { product: Product }) {
       <span className={`${ui.rowMain} ${product.isOnSale ? '' : ui.dimmed}`}>
         <span className={ui.rowTitle}>{product.name}</span>
         <span className={ui.rowSub}>
-          <span className={styles.price}>{formatYen(product.price)}</span>・
-          {taxRateLabel(product.taxRate)}
+          <span className={styles.price}>
+            {product.price === null ? '金額は会計時に入力' : formatYen(product.price)}
+          </span>
+          ・{taxRateLabel(product.taxRate)}
           {product.tracksStock ? '・在庫を管理' : ''}
         </span>
       </span>

@@ -29,6 +29,41 @@ describe('カート（メモリと保存）', () => {
     expect(store().cart?.lines.map((l) => l.qty)).toEqual([2, 1]);
   });
 
+  it('金額を入力した行は、同じ商品でも単価ごとに別の行にする', () => {
+    store().add('e1', 'p9', 500);
+    store().add('e1', 'p9', 200);
+    store().add('e1', 'p9', 500);
+    expect(store().cart?.lines).toMatchObject([
+      { productId: 'p9', unitPrice: 500, qty: 2 },
+      { productId: 'p9', unitPrice: 200, qty: 1 },
+    ]);
+    store().setQty('p9@200', 0);
+    store().setLineDiscount('p9@500', { kind: 'yen', value: 50 });
+    expect(store().cart?.lines).toEqual([
+      { productId: 'p9', unitPrice: 500, qty: 2, discount: { kind: 'yen', value: 50 } },
+    ]);
+  });
+
+  it('行の単価を変えられる。同じ単価の行があればまとめ、undefined で登録した価格に戻す', () => {
+    store().add('e1', 'p1');
+    store().setLineDiscount('p1', { kind: 'yen', value: 10 });
+    store().add('e1', 'p1', 250);
+    store().setUnitPrice('p1', 200);
+    expect(store().cart?.lines).toEqual([
+      { productId: 'p1', unitPrice: 200, qty: 1, discount: { kind: 'yen', value: 10 } },
+      { productId: 'p1', unitPrice: 250, qty: 1, discount: null },
+    ]);
+    // 250 の行を 200 に変えると、200 の行にまとまる（値引きはまとめ先のもの）
+    store().setUnitPrice('p1@250', 200);
+    expect(store().cart?.lines).toEqual([
+      { productId: 'p1', unitPrice: 200, qty: 2, discount: { kind: 'yen', value: 10 } },
+    ]);
+    store().setUnitPrice('p1@200', undefined);
+    expect(store().cart?.lines).toEqual([
+      { productId: 'p1', qty: 2, discount: { kind: 'yen', value: 10 } },
+    ]);
+  });
+
   it('数量を 0 にすると行が消え、行がなくなるとカートごと消える', async () => {
     store().add('e1', 'p1');
     store().setOrderDiscount({ kind: 'yen', value: 10 });
@@ -109,6 +144,48 @@ describe('カートの金額', () => {
     );
     expect(view.lines.map((l) => l.productName)).toEqual(['マフィン']);
     expect(view.total).toBe(450);
+  });
+
+  it('価格が空の商品は入力した単価で計算し、単価のない行は外す', async () => {
+    const { category, cookie, event } = await seedBasic();
+    const open: Product = { ...cookie, id: 'open', name: 'その他', price: null };
+    const view = buildCartView(
+      {
+        eventId: event.id,
+        lines: [
+          { productId: 'open', unitPrice: 500, qty: 2, discount: null },
+          { productId: 'open', qty: 1, discount: null },
+          // 単価を入力したあとで商品に価格を付けても、入力した単価のまま
+          { productId: cookie.id, unitPrice: 120, qty: 1, discount: null },
+        ],
+        orderDiscount: null,
+        updatedAt: 0,
+      },
+      new Map<string, Product>([
+        ['open', open],
+        [cookie.id, cookie],
+      ]),
+      new Map([[category.id, category]]),
+    );
+    expect(view.lines.map((l) => [l.key, l.unitPrice, l.enteredPrice])).toEqual([
+      ['open@500', 500, 500],
+      [`${cookie.id}@120`, 120, 120],
+    ]);
+    expect(view.total).toBe(1120);
+  });
+
+  it('残りは、同じ商品の行の数量をすべて差し引く', async () => {
+    const { cookie, event } = await seedBasic();
+    const cart = {
+      eventId: event.id,
+      lines: [
+        { productId: cookie.id, unitPrice: 100, qty: 2, discount: null },
+        { productId: cookie.id, unitPrice: 200, qty: 1, discount: null },
+      ],
+      orderDiscount: null,
+      updatedAt: 0,
+    };
+    expect(remainingStock(cookie, new Map([[cookie.id, 5]]), new Map(), cart)).toBe(2);
   });
 
   it('残りは、持ち込み数 − 販売数 − カートに入れた数。在庫を管理しない商品は null', async () => {

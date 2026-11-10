@@ -56,8 +56,8 @@ export interface Category {
 export interface Product {
   id: Id;
   name: string;
-  /** 税込。0 以上 */
-  price: Yen;
+  /** 税込。0 以上。null は「会計のときに金額を入力する」 */
+  price: Yen | null;
   taxRate: TaxRate;
   categoryId: Id;
   /** productImages にあるか */
@@ -198,6 +198,11 @@ export interface Settings {
 
 export interface CartLine {
   productId: Id;
+  /**
+   * 会計のときに入力した単価（価格が空の商品だけ）。
+   * 同じ商品でも単価が違えば別の行にする
+   */
+  unitPrice?: Yen;
   qty: number;
   discount: Discount | null;
 }

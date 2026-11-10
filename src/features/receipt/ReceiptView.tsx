@@ -14,7 +14,7 @@ export function ReceiptView({ tx }: { tx: Transaction }) {
   const voided = tx.status === 'voided';
 
   return (
-    <article className={styles.receipt} aria-label="レシート">
+    <article className={styles.receipt} aria-label="レシート" data-print-area>
       {voided && (
         <div className={styles.voidStamp} aria-label="取消">
           取消

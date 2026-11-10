@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { clearCart as clearSavedCart, getCart, saveCart } from '../../db/repositories/cart';
-import type { Cart, Discount, Id } from '../../domain/types';
+import { cartLineKey } from '../../domain/cartLine';
+import type { Cart, CartLine, Discount, Id, Yen } from '../../domain/types';
 
 /**
  * 会計中のカート（04-技術設計 4 章）
@@ -13,12 +14,20 @@ interface CartState {
   cart: Cart | null;
   /** 保存されたカートを読み戻す */
   hydrate: () => Promise<void>;
-  /** 1 個追加する。別のイベントのカートが残っていたら、捨てて新しく始める */
-  add: (eventId: Id, productId: Id) => void;
-  /** 数量を変える。0 以下なら行を消す */
-  setQty: (productId: Id, qty: number) => void;
-  removeLine: (productId: Id) => void;
-  setLineDiscount: (productId: Id, discount: Discount | null) => void;
+  /**
+   * 1 個追加する。別のイベントのカートが残っていたら、捨てて新しく始める。
+   * unitPrice は、価格が空の商品で会計のときに入力した単価（同じ商品・同じ単価の行があれば数量を増やす）
+   */
+  add: (eventId: Id, productId: Id, unitPrice?: Yen) => void;
+  /** 数量を変える。0 以下なら行を消す。key は cartLineKey */
+  setQty: (key: string, qty: number) => void;
+  /**
+   * 行の単価を変える。undefined なら入力した単価を外す（登録した価格に戻す）。
+   * 変えた結果、同じ商品・同じ単価の行があれば、その行に数量をまとめる（値引きはまとめ先のものを残す）
+   */
+  setUnitPrice: (key: string, unitPrice: Yen | undefined) => void;
+  removeLine: (key: string) => void;
+  setLineDiscount: (key: string, discount: Discount | null) => void;
   setOrderDiscount: (discount: Discount | null) => void;
   clear: () => void;
   /** 会計を確定したあと（保存側のカートは確定と同じトランザクションで空になっている） */
@@ -60,40 +69,64 @@ export const useCartStore = create<CartState>((set, get) => {
       else set({ loaded: true });
     },
 
-    add: (eventId, productId) => {
+    add: (eventId, productId, unitPrice) => {
       const current = get().cart;
       const base: Cart =
         current && current.eventId === eventId
           ? current
           : { eventId, lines: [], orderDiscount: null, updatedAt: 0 };
-      const exists = base.lines.some((l) => l.productId === productId);
+      const newLine: CartLine =
+        unitPrice === undefined
+          ? { productId, qty: 1, discount: null }
+          : { productId, unitPrice, qty: 1, discount: null };
+      const key = cartLineKey(newLine);
+      const exists = base.lines.some((l) => cartLineKey(l) === key);
       const cart: Cart = {
         ...base,
         lines: exists
-          ? base.lines.map((l) => (l.productId === productId ? { ...l, qty: l.qty + 1 } : l))
-          : [...base.lines, { productId, qty: 1, discount: null }],
+          ? base.lines.map((l) => (cartLineKey(l) === key ? { ...l, qty: l.qty + 1 } : l))
+          : [...base.lines, newLine],
         updatedAt: Date.now(),
       };
       set({ cart });
       persist(cart);
     },
 
-    setQty: (productId, qty) =>
+    setQty: (key, qty) =>
       update((c) => ({
         ...c,
         lines:
           qty <= 0
-            ? c.lines.filter((l) => l.productId !== productId)
-            : c.lines.map((l) => (l.productId === productId ? { ...l, qty } : l)),
+            ? c.lines.filter((l) => cartLineKey(l) !== key)
+            : c.lines.map((l) => (cartLineKey(l) === key ? { ...l, qty } : l)),
       })),
 
-    removeLine: (productId) =>
-      update((c) => ({ ...c, lines: c.lines.filter((l) => l.productId !== productId) })),
+    setUnitPrice: (key, unitPrice) =>
+      update((c) => {
+        const line = c.lines.find((l) => cartLineKey(l) === key);
+        if (!line) return c;
+        const base = { productId: line.productId, qty: line.qty, discount: line.discount };
+        const changed: CartLine = unitPrice === undefined ? base : { ...base, unitPrice };
+        const newKey = cartLineKey(changed);
+        if (newKey === key) return c;
+        const target = c.lines.find((l) => cartLineKey(l) === newKey);
+        return {
+          ...c,
+          lines: target
+            ? c.lines
+                .filter((l) => l !== line)
+                .map((l) => (l === target ? { ...l, qty: l.qty + line.qty } : l))
+            : c.lines.map((l) => (l === line ? changed : l)),
+        };
+      }),
 
-    setLineDiscount: (productId, discount) =>
+    removeLine: (key) =>
+      update((c) => ({ ...c, lines: c.lines.filter((l) => cartLineKey(l) !== key) })),
+
+    setLineDiscount: (key, discount) =>
       update((c) => ({
         ...c,
-        lines: c.lines.map((l) => (l.productId === productId ? { ...l, discount } : l)),
+        lines: c.lines.map((l) => (cartLineKey(l) === key ? { ...l, discount } : l)),
       })),
 
     setOrderDiscount: (orderDiscount) => update((c) => ({ ...c, orderDiscount })),

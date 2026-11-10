@@ -117,3 +117,18 @@
   font-size: var(--font-sm);
   overflow-wrap: anywhere;
 }
+
+/* 印刷するときは、白い紙に黒で、レシート用紙（幅 80mm）に収まる幅にする */
+@media print {
+  .receipt {
+    --color-bg: #ffffff;
+    --color-text: #000000;
+    --color-text-muted: #000000;
+    --color-border: #000000;
+    max-width: 72mm;
+    margin: 0;
+    padding: 0;
+    border: none;
+    color: #000000;
+  }
+}

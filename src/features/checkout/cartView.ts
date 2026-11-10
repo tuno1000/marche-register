@@ -1,8 +1,21 @@
+import { cartLineKey, cartLineUnitPrice } from '../../domain/cartLine';
 import { calculateCheckout, type CheckoutResult } from '../../domain/checkout';
-import type { Cart, Category, Discount, Id, Product, TransactionLine } from '../../domain/types';
+import type {
+  Cart,
+  Category,
+  Discount,
+  Id,
+  Product,
+  TransactionLine,
+  Yen,
+} from '../../domain/types';
 
 export interface CartViewLine extends TransactionLine {
   product: Product;
+  /** カートの行のキー（cartLineKey） */
+  key: string;
+  /** 会計のときに入力した単価（価格が空の商品だけ） */
+  enteredPrice?: Yen;
 }
 
 export interface CartView extends Omit<CheckoutResult, 'lines'> {
@@ -15,7 +28,8 @@ export interface CartView extends Omit<CheckoutResult, 'lines'> {
 /**
  * カートの金額（値引き・合計）を、今の商品の情報で計算する。
  * 計算は domain の calculateCheckout を使い、画面の中では計算しない（04-技術設計 2 章）。
- * 削除された商品の行は、確定のときにエラーになるので、ここでは表示から外す。
+ * 削除された商品の行と、金額が決まらない行（価格を空にした商品で、単価を入力していない行）は、
+ * 確定のときにエラーになるので、ここでは表示から外す。
  */
 export function buildCartView(
   cart: Cart | null,
@@ -24,14 +38,16 @@ export function buildCartView(
 ): CartView {
   const usable = (cart?.lines ?? []).flatMap((line) => {
     const product = products.get(line.productId);
-    return product && product.deletedAt === null && line.qty > 0 ? [{ line, product }] : [];
+    if (!product || product.deletedAt !== null || line.qty <= 0) return [];
+    const unitPrice = cartLineUnitPrice(line, product);
+    return unitPrice === null ? [] : [{ line, product, unitPrice }];
   });
   const result = calculateCheckout(
-    usable.map(({ line, product }) => ({
+    usable.map(({ line, product, unitPrice }) => ({
       productId: product.id,
       productName: product.name,
       categoryName: categories.get(product.categoryId)?.name ?? '',
-      unitPrice: product.price,
+      unitPrice,
       taxRate: product.taxRate,
       qty: line.qty,
       discount: line.discount,
@@ -40,7 +56,10 @@ export function buildCartView(
   );
   return {
     ...result,
-    lines: result.lines.map((l, i) => ({ ...l, product: usable[i]!.product })),
+    lines: result.lines.map((l, i) => {
+      const { line, product } = usable[i]!;
+      return { ...l, product, key: cartLineKey(line), enteredPrice: line.unitPrice };
+    }),
     qty: usable.reduce((s, u) => s + u.line.qty, 0),
     orderDiscount: cart?.orderDiscount ?? null,
   };
@@ -56,6 +75,7 @@ export function remainingStock(
   cart: Cart | null,
 ): number | null {
   if (!product.tracksStock) return null;
-  const inCart = cart?.lines.find((l) => l.productId === product.id)?.qty ?? 0;
+  const inCart =
+    cart?.lines.filter((l) => l.productId === product.id).reduce((s, l) => s + l.qty, 0) ?? 0;
   return (broughtQty.get(product.id) ?? 0) - (soldQty.get(product.id) ?? 0) - inCart;
 }

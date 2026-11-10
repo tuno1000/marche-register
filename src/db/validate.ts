@@ -19,7 +19,7 @@ export function validNonNegativeInt(value: number, label: string): number {
 
 export function validTaxRate(value: number): TaxRate {
   if (!(TAX_RATES as readonly number[]).includes(value)) {
-    throw new AppError('INVALID_INPUT', '税率は 8% か 10% を選んでください');
+    throw new AppError('INVALID_INPUT', '税率を選んでください');
   }
   return value as TaxRate;
 }

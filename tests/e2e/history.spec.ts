@@ -49,3 +49,27 @@ test('E-4 取消：在庫が戻り、集計から外れる', async ({ page }) =>
   await expect(table.getByRole('row')).toHaveCount(2);
   await expect(table).toContainText('マフィン1¥450');
 });
+
+test('印刷するときは、レシートだけが紙に流れる（ヘッダー・お釣り・ボタン・タブは出ない）', async ({
+  page,
+}) => {
+  await setupShop(page);
+  for (const name of ['クッキー', 'マフィン']) await productButton(page, name).click();
+  await cart(page).getByRole('button', { name: 'お預かりへ ▶' }).click();
+  await page.getByRole('button', { name: 'ぴったり' }).click();
+  await page.getByRole('button', { name: '確定' }).click();
+  const receipt = page.getByRole('article', { name: 'レシート' });
+  await expect(receipt).toBeVisible();
+  await expect(page.getByRole('button', { name: '印刷' })).toBeVisible();
+
+  await page.emulateMedia({ media: 'print' });
+  await expect(receipt).toBeVisible();
+  await expect(receipt).toContainText('合計');
+  await expect(page.getByRole('heading', { name: 'レシート' })).toBeHidden();
+  await expect(page.getByLabel('お釣り')).toBeHidden();
+  await expect(page.getByRole('button', { name: '印刷' })).toBeHidden();
+  await expect(page.getByRole('button', { name: '次の会計へ' })).toBeHidden();
+  // 文字は黒、背景は白
+  expect(await receipt.evaluate((el) => getComputedStyle(el).color)).toBe('rgb(0, 0, 0)');
+  await page.screenshot({ path: test.info().outputPath('print.png'), fullPage: true });
+});

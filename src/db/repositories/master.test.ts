@@ -96,6 +96,7 @@ describe('商品', () => {
     await expectCode(createProduct({ ...base, price: 100, taxRate: 5 as 8 }), 'INVALID_INPUT');
     await expectCode(createProduct({ ...base, price: 100, categoryId: 'none' }), 'INVALID_INPUT');
     expect((await createProduct({ ...base, price: 0 })).price).toBe(0);
+    expect((await createProduct({ ...base, price: null })).price).toBeNull();
   });
 
   it('削除すると一覧から消え、カートからも外れる。過去の取引の商品名は残る', async () => {

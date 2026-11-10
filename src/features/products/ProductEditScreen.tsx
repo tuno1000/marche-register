@@ -50,7 +50,7 @@ interface Form {
 type ImageChange =
   { kind: 'keep' } | { kind: 'set'; image: ResizedImage; url: string } | { kind: 'remove' };
 
-type Errors = Partial<Record<'name' | 'price' | 'categoryId', string>>;
+type Errors = Partial<Record<'name' | 'categoryId', string>>;
 
 /** S-05b 商品編集（/products/new と /products/:id） */
 export function ProductEditScreen() {
@@ -86,7 +86,7 @@ async function loadInitial(id: string | undefined): Promise<Initial | null> {
       product,
       form: {
         name: product.name,
-        price: String(product.price),
+        price: product.price === null ? '' : String(product.price),
         taxRate: product.taxRate,
         categoryId: product.categoryId,
         tracksStock: product.tracksStock,
@@ -173,7 +173,6 @@ function ProductForm({ initial, categories }: { initial: Initial; categories: Ca
   const validate = (): Errors => {
     const next: Errors = {};
     if (form.name.trim() === '') next.name = '商品名を入力してください';
-    if (form.price === '') next.price = '価格を入力してください';
     if (!categories.some((c) => c.id === form.categoryId))
       next.categoryId = 'カテゴリを選んでください';
     return next;
@@ -183,7 +182,7 @@ function ProductForm({ initial, categories }: { initial: Initial; categories: Ca
     const found = validate();
     setErrors(found);
     if (Object.keys(found).length > 0) return;
-    const input = { ...form, price: Number(form.price) };
+    const input = { ...form, price: form.price === '' ? null : Number(form.price) };
     const imageData =
       image.kind === 'set'
         ? {
@@ -344,17 +343,14 @@ function ProductForm({ initial, categories }: { initial: Initial; categories: Ca
               inputMode="numeric"
               pattern="[0-9]*"
               autoComplete="off"
-              aria-invalid={!!errors.price}
-              aria-describedby={errors.price ? 'product-price-error' : undefined}
+              aria-describedby="product-price-hint"
               onChange={(e) => update('price', digitsOnly(e.target.value).replace(/^0+(?=\d)/, ''))}
             />
             <span>円</span>
           </div>
-          {errors.price && (
-            <p id="product-price-error" className={ui.error}>
-              {errors.price}
-            </p>
-          )}
+          <p id="product-price-hint" className={ui.hint}>
+            空にすると、会計のときに金額を入力します
+          </p>
         </div>
 
         <div className={ui.field}>

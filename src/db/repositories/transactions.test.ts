@@ -125,6 +125,31 @@ describe('会計の確定', () => {
     );
   });
 
+  it('価格が空の商品は、入力した単価で確定する。単価がなければ確定できない', async () => {
+    const { cookie, event } = await seedBasic();
+    await updateProduct(cookie.id, { price: null });
+    const lines = [
+      { productId: cookie.id, unitPrice: 500, qty: 2, discount: null },
+      { productId: cookie.id, unitPrice: 0, qty: 1, discount: null },
+    ];
+    const tx = await checkout({ eventId: event.id, lines, orderDiscount: null, tendered: 1000 });
+    expect(tx.lines.map((l) => [l.unitPrice, l.qty, l.netAmount])).toEqual([
+      [500, 2, 1000],
+      [0, 1, 0],
+    ]);
+    expect(tx.total).toBe(1000);
+
+    await expectCode(
+      checkout({
+        eventId: event.id,
+        lines: [{ productId: cookie.id, qty: 1, discount: null }],
+        orderDiscount: null,
+        tendered: 1000,
+      }),
+      'INVALID_INPUT',
+    );
+  });
+
   it('在庫を管理しない商品は、持ち込み数がなくても売れる', async () => {
     const { cookie, event } = await seedBasic();
     await updateProduct(cookie.id, { tracksStock: false });

@@ -1,11 +1,12 @@
 # データ設計書：マルシェ用スマホレジ PWA
 
-- 版：1.1
+- 版：1.2
 - 作成日：2026-11-06
 - 状態：**確定**（2026-11-06）
 - 変更履歴
   - 1.1 M2 の実装に合わせて、商品画像を Blob ではなく ArrayBuffer（と形式 `type`）で保存するように変更（iPhone などの WebKit では、プライベートブラウズなどで Blob を保存できないことがあるため）
-- 前提：[01-要件定義](./01-requirements.md) v1.2、[02-画面設計](./02-screen-design.md) v1.1
+  - 1.2 01 の v1.4 を受けて、`TaxRate` に 1 と 0（「税込み」）を追加し、4.2 の按分の順番を書き直した。商品の `price` を `null`（会計のときに入力）にできるようにし、カートの行に、会計のときに入力した（変えた）単価 `unitPrice` を追加
+- 前提：[01-要件定義](./01-requirements.md) v1.4、[02-画面設計](./02-screen-design.md) v1.3
 
 ---
 
@@ -101,7 +102,7 @@ interface Category {
 interface Product {
   id: Id;
   name: string;           // 1〜40 文字
-  price: Yen;             // 税込。0 以上
+  price: Yen | null;      // 税込。0 以上。null は「会計のときに金額を入力する」
   taxRate: TaxRate;
   categoryId: Id;
   hasImage: boolean;      // productImages にあるか（画像を読まずに判定するため）
@@ -260,13 +261,23 @@ interface DiscountPreset {
 
 interface Cart {
   eventId: Id;
-  lines: { productId: Id; qty: number; discount: Discount | null }[];
+  lines: CartLine[];
   orderDiscount: Discount | null;
   updatedAt: EpochMs;
+}
+
+interface CartLine {
+  productId: Id;
+  unitPrice?: Yen;              // 会計のときに入力した（変えた）単価
+  qty: number;
+  discount: Discount | null;
 }
 ```
 
 - カートには商品の ID と数量だけを持つ。商品名や価格は、確定するときに商品データから読み、取引にコピーする
+- 例外として、価格が空（`null`）の商品で入力した単価や、会計のときに変えた単価は `unitPrice` に持つ。確定するときは `unitPrice` があればそれを、なければ商品の `price` を単価にする。どちらもなければ確定できない
+- 単価を登録した価格と同じに変えたら、`unitPrice` を消す
+- カートの行は「商品 ID ＋ `unitPrice`」で見分ける。同じ商品でも `unitPrice` が違えば別の行にする。在庫の残りは、同じ商品の行の数量をすべて足して差し引く
 - `settings` の初期値（初めて起動したとき）
   - 店名などのレシート項目：空
   - `defaultRounding`：`'floor'`、`theme`：`'light'`
@@ -297,7 +308,7 @@ interface Cart {
 2. 明細値引きを引く：`afterLine ＝ grossAmount − lineDiscountAmount`
 3. `subtotal ＝ afterLine の合計`
 4. 全体値引きの額を出す（対象は `subtotal`）
-5. **税率ごとに按分する**：税率別の `afterLine` 合計の比率で分け、1 円未満は切り捨てる。余った 1 円は、合計の大きい税率に足す（同じ額なら 10% に足す）
+5. **税率ごとに按分する**：税率別の `afterLine` 合計の比率で分け、1 円未満は切り捨てる。余った 1 円は、合計の大きい税率に足す（同じ額なら 10% → 8% → 1% → 「税込み」の順に足す）
 6. **税率の中で明細ごとに按分する**：その税率の按分額を、明細の `afterLine` の比率で分け、1 円未満は切り捨てる。余りは `afterLine` の大きい明細から順に 1 円ずつ足す（同じ額なら行番号の小さい明細から）
 7. `netAmount ＝ afterLine − orderDiscountShare`
 8. 税率ごとに `taxableAmount ＝ netAmount の合計`、`taxAmount ＝ floor(taxableAmount × 税率 ÷ (100 + 税率))`。「税込み」（0）は 5〜7 の按分には加えるが、`taxes` には入れない
@@ -381,6 +392,7 @@ interface Cart {
 - 画像は ArrayBuffer のままでは JSON にできないので、Base64 の文字列にする（50 枚で約 3.4MB）
 - カートと `installWarningDismissed` は含めない（その端末だけの一時的な状態のため）
 - 書き出したら `lastBackupAt` を更新する
+- 商品の `price` は `null`（会計のときに入力）でもよい。`null` を持たない前の版のファイルも、そのまま復元できる（`formatVersion` は 1 のまま）
 - **復元のチェック**
   - `format` が違う、または JSON として読めない →「このアプリのバックアップファイルではありません」
   - `formatVersion` が今のアプリより新しい →「アプリを最新にしてから復元してください」
@@ -408,7 +420,7 @@ interface Cart {
 | 7 | 商品名 | クッキー | `productName` |
 | 8 | カテゴリ | 焼き菓子 | `categoryName` |
 | 9 | 税率 | 8%（「税込み」は 税込み） | `taxRate` |
-| 10 | 単価 | 300 | `unitPrice` |
+| 10 | 単価 | 300（会計のときに入力した・変えた金額は、その金額） | `unitPrice` |
 | 11 | 数量 | 2 | `qty` |
 | 12 | 小計 | 600 | `grossAmount` |
 | 13 | 明細値引き | 60 | `lineDiscountAmount` |

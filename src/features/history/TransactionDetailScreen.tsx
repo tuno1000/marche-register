@@ -9,6 +9,7 @@ import { getTransaction, voidTransaction } from '../../db/repositories/transacti
 import { useGoBack } from '../../hooks/useGoBack';
 import { errorMessage } from '../../lib/errorMessage';
 import { formatYen } from '../../lib/format';
+import { PrintButton } from '../receipt/PrintButton';
 import { ReceiptView } from '../receipt/ReceiptView';
 
 /** S-03a 取引詳細（S-02 と同じレシートに［取消］を加える） */
@@ -42,9 +43,10 @@ export function TransactionDetailScreen() {
           <div className={ui.body}>
             <ReceiptView tx={tx} />
           </div>
-          {/* 取り消した取引には［取消］を出さない */}
-          {tx.status === 'valid' && (
-            <div className={ui.footer}>
+          <div className={ui.footer}>
+            <PrintButton />
+            {/* 取り消した取引には［取消］を出さない */}
+            {tx.status === 'valid' && (
               <button
                 type="button"
                 className={`${ui.button} ${ui.danger} ${ui.large}`}
@@ -52,8 +54,8 @@ export function TransactionDetailScreen() {
               >
                 この取引を取り消す
               </button>
-            </div>
-          )}
+            )}
+          </div>
           <ConfirmDialog
             open={confirm}
             title="取引を取り消しますか？"

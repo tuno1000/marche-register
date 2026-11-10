@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { getCurrentEventId, setCurrentEventId, updateSettings } from '../../db/kv';
 import { getCart } from '../../db/repositories/cart';
 import { createEvent } from '../../db/repositories/events';
+import { updateProduct } from '../../db/repositories/products';
 import { checkout } from '../../db/repositories/transactions';
 import { db } from '../../db/schema';
 import { resetDb } from '../../test/db';
@@ -126,6 +127,58 @@ describe('S-01 会計', () => {
     await user.click(within(sheet).getByRole('button', { name: '適用' }));
     expect(cart()).toHaveTextContent('全体値引き-¥100');
     expect(cart()).toHaveTextContent('¥890');
+  });
+
+  it('価格が空の商品は、金額を入力してからカートに入れる。単価ごとに別の行になる', async () => {
+    const { user, cookie } = await setup();
+    await updateProduct(cookie.id, { price: null });
+    await waitFor(() => expect(productButton('クッキー')).toHaveTextContent('金額入力'));
+
+    await user.click(productButton('クッキー'));
+    let sheet = screen.getByRole('dialog', { name: '金額：クッキー' });
+    expect(within(sheet).getByRole('button', { name: 'カートに追加' })).toBeDisabled();
+    await user.type(within(sheet).getByLabelText('金額（税込）'), '500{Enter}');
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+    await user.click(productButton('クッキー'));
+    sheet = screen.getByRole('dialog', { name: '金額：クッキー' });
+    await user.type(within(sheet).getByLabelText('金額（税込）'), '200');
+    await user.click(within(sheet).getByRole('button', { name: 'カートに追加' }));
+
+    // ＋ は同じ単価でもう 1 個
+    await user.click(within(cart()).getByRole('button', { name: 'クッキー（¥500）を 1 増やす' }));
+    expect(within(cart()).getByLabelText('クッキー（¥500）の数量')).toHaveTextContent('2');
+    expect(within(cart()).getByLabelText('クッキー（¥200）の数量')).toHaveTextContent('1');
+    expect(cart()).toHaveTextContent('¥1,200');
+    expect(productButton('クッキー')).toHaveTextContent('残 2');
+  });
+
+  it('メニューの［金額を変える］で、カートの行の単価を変えられる。登録した価格に戻すと元の行になる', async () => {
+    const { user } = await setup();
+    await user.click(productButton('クッキー'));
+    await user.click(productButton('クッキー'));
+
+    await user.click(within(cart()).getByRole('button', { name: 'クッキーのメニュー' }));
+    await user.click(screen.getByRole('button', { name: '金額を変える' }));
+    let sheet = screen.getByRole('dialog', { name: '金額：クッキー' });
+    expect(sheet).toHaveTextContent('登録した価格 ¥300');
+    const input = within(sheet).getByLabelText('金額（税込）');
+    expect(input).toHaveValue('300');
+    await user.clear(input);
+    await user.type(input, '250');
+    await user.click(within(sheet).getByRole('button', { name: '金額を変える' }));
+
+    expect(within(cart()).getByLabelText('クッキー（¥250）の数量')).toHaveTextContent('2');
+    expect(cart()).toHaveTextContent('¥500');
+
+    // 登録した価格に戻す
+    await user.click(within(cart()).getByRole('button', { name: 'クッキー（¥250）のメニュー' }));
+    await user.click(screen.getByRole('button', { name: '金額を変える' }));
+    sheet = screen.getByRole('dialog', { name: '金額：クッキー' });
+    await user.clear(within(sheet).getByLabelText('金額（税込）'));
+    await user.type(within(sheet).getByLabelText('金額（税込）'), '300{Enter}');
+    expect(within(cart()).getByLabelText('クッキーの数量')).toHaveTextContent('2');
+    expect(cart()).toHaveTextContent('¥600');
   });
 
   it('メニューの［カートから削除］で行を消す', async () => {

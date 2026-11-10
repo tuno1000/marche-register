@@ -1,3 +1,4 @@
+import { cartLineUnitPrice } from '../../domain/cartLine';
 import { calculateCheckout, type CheckoutLineInput } from '../../domain/checkout';
 import { AppError } from '../../domain/errors';
 import { formatReceiptNo } from '../../domain/receiptNo';
@@ -36,12 +37,16 @@ export async function checkout(req: CheckoutRequest): Promise<Transaction> {
         if (!product || product.deletedAt !== null) {
           throw new AppError('PRODUCT_UNAVAILABLE', 'カートに削除された商品があります');
         }
+        const unitPrice = cartLineUnitPrice(line, product);
+        if (unitPrice === null) {
+          throw new AppError('INVALID_INPUT', `「${product.name}」の金額が入力されていません`);
+        }
         const category = await db.categories.get(product.categoryId);
         inputs.push({
           productId: product.id,
           productName: product.name,
           categoryName: category?.name ?? '',
-          unitPrice: product.price,
+          unitPrice,
           taxRate: product.taxRate,
           qty: line.qty,
           discount: line.discount,

@@ -6,6 +6,7 @@ import { getTransaction } from '../../db/repositories/transactions';
 import { useGoBack } from '../../hooks/useGoBack';
 import { useWakeLock } from '../../hooks/useWakeLock';
 import { formatYen } from '../../lib/format';
+import { PrintButton } from './PrintButton';
 import styles from './ReceiptScreen.module.css';
 import { ReceiptView } from './ReceiptView';
 
@@ -36,6 +37,7 @@ export function ReceiptScreen() {
         </>
       )}
       <div className={ui.footer}>
+        {tx && <PrintButton />}
         <button type="button" className={`${ui.button} ${ui.primary} ${ui.large}`} onClick={next}>
           次の会計へ
         </button>

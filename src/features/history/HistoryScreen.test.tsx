@@ -1,5 +1,5 @@
 import { screen, waitFor, within } from '@testing-library/react';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { setCurrentEventId } from '../../db/kv';
 import { createEvent, soldQtyByProduct } from '../../db/repositories/events';
 import { checkout, voidTransaction } from '../../db/repositories/transactions';
@@ -84,5 +84,17 @@ describe('S-03a 取引詳細', () => {
     renderApp(`/history/${tx1.id}`);
     expect(await screen.findByLabelText('取消')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'この取引を取り消す' })).not.toBeInTheDocument();
+  });
+
+  it('［印刷］でブラウザの印刷を開く（取り消した取引も印刷できる）。印刷するのはレシートだけ', async () => {
+    const { tx1 } = await setup();
+    await voidTransaction(tx1.id);
+    const print = vi.spyOn(window, 'print').mockImplementation(() => {});
+    const { user } = renderApp(`/history/${tx1.id}`);
+    const receipt = await screen.findByRole('article', { name: 'レシート' });
+    expect(receipt).toHaveAttribute('data-print-area');
+    await user.click(screen.getByRole('button', { name: '印刷' }));
+    expect(print).toHaveBeenCalledOnce();
+    print.mockRestore();
   });
 });

@@ -25,13 +25,29 @@ describe('S-05b 商品編集', () => {
     ]);
   });
 
-  it('商品名と価格は必須', async () => {
+  it('商品名は必須', async () => {
     await createCategory({ name: '焼き菓子', color: 'c1' });
     const { user, path } = renderApp('/products', '/products/new');
     await user.click(await screen.findByRole('button', { name: '保存' }));
     expect(screen.getByText('商品名を入力してください')).toBeInTheDocument();
-    expect(screen.getByText('価格を入力してください')).toBeInTheDocument();
     expect(path()).toBe('/products/new');
+  });
+
+  it('価格を空にして保存すると「会計時に入力」の商品になる。編集では空のまま開く', async () => {
+    await createCategory({ name: 'その他', color: 'c1' });
+    const { user, path } = renderApp('/products', '/products/new');
+    await user.type(await screen.findByLabelText('商品名'), 'その他');
+    expect(screen.getByText('空にすると、会計のときに金額を入力します')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: '保存' }));
+
+    await waitFor(() => expect(path()).toBe('/products'));
+    expect(await screen.findByText('金額は会計時に入力')).toBeInTheDocument();
+    const [product] = await listProducts();
+    expect(product).toMatchObject({ name: 'その他', price: null });
+
+    await user.click(screen.getByText('その他', { selector: 'span' }));
+    await waitFor(() => expect(path()).toBe(`/products/${product!.id}`));
+    expect(await screen.findByLabelText('価格（税込）')).toHaveValue('');
   });
 
   it('価格の欄には数字だけが入る（0 円も可）', async () => {

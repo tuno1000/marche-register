@@ -50,6 +50,25 @@ describe('JSON バックアップ', () => {
     expect(backup.counts).toEqual({ categories: 1, products: 0, events: 0, transactions: 0 });
   });
 
+  it('価格が空（null）の商品も読み戻せる', () => {
+    const product = {
+      id: 'p',
+      name: 'その他',
+      price: null,
+      taxRate: 10 as const,
+      categoryId: 'c',
+      hasImage: false,
+      tracksStock: false,
+      isOnSale: true,
+      deletedAt: null,
+      sortOrder: 1,
+      createdAt: 1,
+      updatedAt: 1,
+    };
+    const backup = buildBackup({ ...empty, products: [product] }, '0.5.0');
+    expect(parseBackup(JSON.stringify(backup))).toEqual({ ok: true, backup });
+  });
+
   it('JSON でない、形式が違う、中身が欠けている →「このアプリのバックアップファイルではありません」', () => {
     const bad = { ok: false, message: MESSAGES.notBackup };
     expect(parseBackup('こわれた{')).toEqual(bad);

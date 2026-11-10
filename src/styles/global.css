@@ -56,3 +56,31 @@ textarea {
   outline: 3px solid var(--color-primary);
   outline-offset: 2px;
 }
+
+/*
+ * 印刷（02-画面設計 S-02）：data-print-area を付けた部分（レシート）だけを印刷する。
+ * それ以外の要素は消し、レシートを包む要素は、画面用の高さやスクロールを外して紙に流す
+ */
+@media print {
+  html,
+  body,
+  #root {
+    height: auto;
+    background: #ffffff;
+  }
+
+  body *:not([data-print-area], [data-print-area] *, :has([data-print-area])) {
+    display: none !important;
+  }
+
+  body *:has([data-print-area]) {
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    border: none !important;
+    background: none !important;
+  }
+}

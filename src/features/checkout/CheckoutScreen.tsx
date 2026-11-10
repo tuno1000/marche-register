@@ -10,15 +10,17 @@ import { getCurrentEventId } from '../../db/kv';
 import { listCategories } from '../../db/repositories/categories';
 import { getEvent, listEventStocks, soldQtyByProduct } from '../../db/repositories/events';
 import { listProducts } from '../../db/repositories/products';
-import type { Category, Discount, Id, Product } from '../../domain/types';
+import { cartLineKey } from '../../domain/cartLine';
+import type { Category, Discount, Id, Product, Yen } from '../../domain/types';
 import { useProductImageUrl } from '../../hooks/useProductImageUrl';
 import { useSettings } from '../../hooks/useSettings';
 import { useWakeLock } from '../../hooks/useWakeLock';
 import { discountLabel, formatShortDate, formatYen } from '../../lib/format';
 import { useCartStore } from './cartStore';
-import { buildCartView, remainingStock, type CartView } from './cartView';
+import { buildCartView, remainingStock, type CartView, type CartViewLine } from './cartView';
 import styles from './CheckoutScreen.module.css';
 import { DiscountSheet, type DiscountTarget } from './DiscountSheet';
+import { PriceSheet, type PriceTarget } from './PriceSheet';
 
 /** 最後に選んだカテゴリのタブ（ほかの画面から戻っても同じタブにする） */
 let lastCategoryId: Id | null = null;
@@ -43,8 +45,17 @@ export function CheckoutScreen() {
     };
   });
   const settings = useSettings();
-  const { cart, loaded, add, setQty, removeLine, setLineDiscount, setOrderDiscount, clear } =
-    useCartStore();
+  const {
+    cart,
+    loaded,
+    add,
+    setQty,
+    setUnitPrice,
+    removeLine,
+    setLineDiscount,
+    setOrderDiscount,
+    clear,
+  } = useCartStore();
 
   // 会計画面を開いたら、保存されたカートを読み直す（ほかの画面で商品を削除したときなど）
   useEffect(() => {
@@ -65,34 +76,75 @@ export function CheckoutScreen() {
     [cart, productMap, categoryMap],
   );
 
-  const [highlight, setHighlight] = useState<{ productId: Id; n: number } | null>(null);
-  const [menuFor, setMenuFor] = useState<Product | null>(null);
+  const [highlight, setHighlight] = useState<{ key: string; n: number } | null>(null);
+  const [menuFor, setMenuFor] = useState<CartViewLine | null>(null);
+  const [priceTarget, setPriceTarget] = useState<PriceTarget | null>(null);
   const [discountTarget, setDiscountTarget] = useState<
-    (DiscountTarget & { productId: Id | null }) | null
+    (DiscountTarget & { lineKey: string | null }) | null
   >(null);
   const [confirmClear, setConfirmClear] = useState(false);
 
   const remaining = (p: Product) =>
     data ? remainingStock(p, data.brought, data.sold, cart) : null;
 
-  const addProduct = (p: Product) => {
+  /** カートに 1 個追加する。unitPrice は価格を空にした商品で入力した単価 */
+  const addLine = (p: Product, unitPrice?: Yen) => {
     if (!event) return;
     const left = remaining(p);
     if (left !== null && left <= 0) {
       showToast(`「${p.name}」はこれ以上ありません`);
       return;
     }
-    add(event.id, p.id);
-    setHighlight((h) => ({ productId: p.id, n: (h?.n ?? 0) + 1 }));
+    add(event.id, p.id, unitPrice);
+    const key = cartLineKey({ productId: p.id, unitPrice });
+    setHighlight((h) => ({ key, n: (h?.n ?? 0) + 1 }));
   };
 
-  const openLineDiscount = (productId: Id) => {
-    const line = view.lines.find((l) => l.productId === productId);
+  // 価格を空にした商品は、金額を入力してから追加する
+  const tapProduct = (p: Product) => {
+    if (p.price !== null) {
+      addLine(p);
+      return;
+    }
+    const left = remaining(p);
+    if (left !== null && left <= 0) {
+      showToast(`「${p.name}」はこれ以上ありません`);
+      return;
+    }
+    setPriceTarget({ product: p, mode: 'add', initial: null });
+  };
+
+  const openPriceChange = (line: CartViewLine) => {
+    setMenuFor(null);
+    setPriceTarget({
+      product: line.product,
+      mode: 'change',
+      lineKey: line.key,
+      initial: line.unitPrice,
+    });
+  };
+
+  const submitPrice = (target: PriceTarget, unitPrice: Yen) => {
+    setPriceTarget(null);
+    const { product } = target;
+    if (target.mode === 'add') {
+      addLine(product, unitPrice);
+      return;
+    }
+    // 登録した価格と同じにしたら、入力した単価を外す（登録した価格の行とまとまる）
+    const entered = unitPrice === product.price ? undefined : unitPrice;
+    setUnitPrice(target.lineKey!, entered);
+    const key = cartLineKey({ productId: product.id, unitPrice: entered });
+    setHighlight((h) => ({ key, n: (h?.n ?? 0) + 1 }));
+  };
+
+  const openLineDiscount = (key: string) => {
+    const line = view.lines.find((l) => l.key === key);
     if (!line) return;
     setMenuFor(null);
     setDiscountTarget({
-      productId,
-      label: `${line.productName} ×${line.qty}`,
+      lineKey: key,
+      label: `${lineLabel(line)} ×${line.qty}`,
       scope: 'line',
       base: line.grossAmount,
       current: line.lineDiscount,
@@ -101,7 +153,7 @@ export function CheckoutScreen() {
 
   const openOrderDiscount = () =>
     setDiscountTarget({
-      productId: null,
+      lineKey: null,
       label: '会計全体',
       scope: 'order',
       base: view.subtotal,
@@ -110,7 +162,7 @@ export function CheckoutScreen() {
 
   const applyDiscount = (discount: Discount | null) => {
     if (!discountTarget) return;
-    if (discountTarget.productId) setLineDiscount(discountTarget.productId, discount);
+    if (discountTarget.lineKey) setLineDiscount(discountTarget.lineKey, discount);
     else setOrderDiscount(discount);
     setDiscountTarget(null);
   };
@@ -168,17 +220,14 @@ export function CheckoutScreen() {
           soldOut={(p) =>
             p.tracksStock && (data.brought.get(p.id) ?? 0) - (data.sold.get(p.id) ?? 0) <= 0
           }
-          onAdd={addProduct}
+          onAdd={tapProduct}
         />
         <CartPane
           view={view}
           highlight={highlight}
-          onName={(productId) => setMenuFor(productMap.get(productId) ?? null)}
-          onPlus={(line) => {
-            const p = productMap.get(line.productId);
-            if (p) addProduct(p);
-          }}
-          onMinus={(line) => setQty(line.productId, line.qty - 1)}
+          onName={setMenuFor}
+          onPlus={(line) => addLine(line.product, line.enteredPrice)}
+          onMinus={(line) => setQty(line.key, line.qty - 1)}
           onClear={() => setConfirmClear(true)}
           onOrderDiscount={openOrderDiscount}
           onTender={() => void navigate('/tender')}
@@ -187,7 +236,7 @@ export function CheckoutScreen() {
 
       <BottomSheet
         open={menuFor !== null}
-        title={menuFor?.name ?? ''}
+        title={menuFor ? lineLabel(menuFor) : ''}
         onClose={() => setMenuFor(null)}
       >
         {menuFor && (
@@ -195,7 +244,14 @@ export function CheckoutScreen() {
             <button
               type="button"
               className={`${ui.button} ${ui.large}`}
-              onClick={() => openLineDiscount(menuFor.id)}
+              onClick={() => openPriceChange(menuFor)}
+            >
+              金額を変える
+            </button>
+            <button
+              type="button"
+              className={`${ui.button} ${ui.large}`}
+              onClick={() => openLineDiscount(menuFor.key)}
             >
               値引き
             </button>
@@ -203,7 +259,7 @@ export function CheckoutScreen() {
               type="button"
               className={`${ui.button} ${ui.danger} ${ui.large}`}
               onClick={() => {
-                removeLine(menuFor.id);
+                removeLine(menuFor.key);
                 setMenuFor(null);
               }}
             >
@@ -212,6 +268,12 @@ export function CheckoutScreen() {
           </div>
         )}
       </BottomSheet>
+
+      <PriceSheet
+        target={priceTarget}
+        onSubmit={submitPrice}
+        onClose={() => setPriceTarget(null)}
+      />
 
       <DiscountSheet
         target={discountTarget}
@@ -336,7 +398,9 @@ function ProductButton({
         </span>
       )}
       <span className={styles.productName}>{product.name}</span>
-      <span className={styles.productPrice}>{formatYen(product.price)}</span>
+      <span className={styles.productPrice}>
+        {product.price === null ? '金額入力' : formatYen(product.price)}
+      </span>
       {soldOut ? (
         <span className={styles.soldOut}>売切</span>
       ) : (
@@ -358,20 +422,20 @@ function CartPane({
   onTender,
 }: {
   view: CartView;
-  highlight: { productId: Id; n: number } | null;
-  onName: (productId: Id) => void;
-  onPlus: (line: CartView['lines'][number]) => void;
-  onMinus: (line: CartView['lines'][number]) => void;
+  highlight: { key: string; n: number } | null;
+  onName: (line: CartViewLine) => void;
+  onPlus: (line: CartViewLine) => void;
+  onMinus: (line: CartViewLine) => void;
   onClear: () => void;
   onOrderDiscount: () => void;
   onTender: () => void;
 }) {
-  const rows = useRef(new Map<Id, HTMLLIElement>());
+  const rows = useRef(new Map<string, HTMLLIElement>());
   const empty = view.lines.length === 0;
 
   // 追加した行が見えるようにスクロールする
   useEffect(() => {
-    if (highlight) rows.current.get(highlight.productId)?.scrollIntoView?.({ block: 'nearest' });
+    if (highlight) rows.current.get(highlight.key)?.scrollIntoView?.({ block: 'nearest' });
   }, [highlight]);
 
   return (
@@ -380,24 +444,27 @@ function CartPane({
         {empty && <li className={styles.cartEmpty}>商品をタップして追加</li>}
         {view.lines.map((line) => (
           <li
-            key={line.productId}
+            key={line.key}
             className={styles.line}
             ref={(el) => {
-              if (el) rows.current.set(line.productId, el);
-              else rows.current.delete(line.productId);
+              if (el) rows.current.set(line.key, el);
+              else rows.current.delete(line.key);
             }}
           >
-            {highlight?.productId === line.productId && (
+            {highlight?.key === line.key && (
               <span key={highlight.n} className={styles.flash} aria-hidden="true" />
             )}
             <div className={styles.lineMain}>
               <button
                 type="button"
                 className={styles.lineName}
-                onClick={() => onName(line.productId)}
-                aria-label={`${line.productName}のメニュー`}
+                onClick={() => onName(line)}
+                aria-label={`${lineLabel(line)}のメニュー`}
               >
                 {line.productName}
+                {line.enteredPrice !== undefined && (
+                  <span className={styles.enteredPrice}>@{formatYen(line.enteredPrice)}</span>
+                )}
                 {line.taxRate === 8 && <span aria-label="軽減税率">※</span>}
               </button>
               <div className={styles.qty}>
@@ -405,18 +472,18 @@ function CartPane({
                   type="button"
                   className={styles.qtyButton}
                   onClick={() => onMinus(line)}
-                  aria-label={`${line.productName}を 1 減らす`}
+                  aria-label={`${lineLabel(line)}を 1 減らす`}
                 >
                   －
                 </button>
-                <span className={styles.qtyValue} aria-label={`${line.productName}の数量`}>
+                <span className={styles.qtyValue} aria-label={`${lineLabel(line)}の数量`}>
                   {line.qty}
                 </span>
                 <button
                   type="button"
                   className={styles.qtyButton}
                   onClick={() => onPlus(line)}
-                  aria-label={`${line.productName}を 1 増やす`}
+                  aria-label={`${lineLabel(line)}を 1 増やす`}
                 >
                   ＋
                 </button>
@@ -475,4 +542,11 @@ function CartPane({
       </div>
     </section>
   );
+}
+
+/** 行の名前。金額を入力した（変えた）行は単価も付ける：「その他（¥500）」 */
+function lineLabel(line: CartViewLine): string {
+  return line.enteredPrice === undefined
+    ? line.productName
+    : `${line.productName}（${formatYen(line.enteredPrice)}）`;
 }

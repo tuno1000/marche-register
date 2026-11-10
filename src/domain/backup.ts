@@ -185,7 +185,7 @@ const categorySchema = z.object({
 const productSchema = z.object({
   id: z.string(),
   name: z.string(),
-  price: yen,
+  price: yen.nullable(),
   taxRate,
   categoryId: z.string(),
   hasImage: z.boolean(),
